@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mikedesign fixture: slop</title>
+<!--
+  Deliberately bad. Every rule in data/rules.json should fire on this page.
+  This is the regression test: if a rule stops catching its own fixture, the
+  rule is broken. Do not "fix" the design here.
+-->
+<style>
+  body {
+    margin: 0;
+    background: #0b0b12;                      /* dark-by-reflex */
+    color: #e5e7eb;
+    font-family: Inter, system-ui, sans-serif;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 64px 24px; }
+
+  .orb {                                       /* gradient-orb */
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    filter: blur(80px);
+    position: absolute; top: -80px; left: 20%;
+    z-index: 0;
+  }
+
+  .eyebrow {                                   /* eyebrow-label */
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    font-size: 12px;
+    color: #a5b4fc;
+    margin: 0 0 12px;
+  }
+
+  h1 {                                         /* default-display-font + gradient-text + budget */
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 56px;
+    margin: 0 0 16px;
+    background-image: linear-gradient(90deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub { font-size: 20px; color: #9ca3af; max-width: 60ch; }
+
+  .cta {                                       /* indigo-violet-default + halo-shadow */
+    display: inline-block;
+    margin-top: 24px;
+    padding: 14px 28px;
+    background: #6366f1;
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 0 24px rgba(99, 102, 241, .9);
+  }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 72px; }
+  .card {                                      /* identical-card-row + glass-decoration */
+    padding: 28px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .card .ico { font-size: 32px; }              /* emoji-as-icon */
+  .card h3 { margin: 12px 0 8px; font-size: 18px; }
+  .card p { margin: 0; color: #9ca3af; font-size: 14px; }
+
+  .num { font-family: ui-monospace, Menlo, monospace; color: #818cf8; font-size: 14px; }
+  .quote { margin-top: 72px; font-size: 20px; }
+  .stat { margin-top: 40px; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="orb"></div>
+<div class="wrap">
+
+  <p class="eyebrow">Introducing</p>
+  <h1>Faster, simpler, and smarter hotel price tracking for everyone who travels</h1>
+  <p class="sub">
+    We believe in delivering exceptional solutions that drive meaningful results for modern teams
+    who want to take their travel spending to the next level.
+  </p>
+  <a class="cta" href="#">Get started</a>
+
+  <div class="cards">
+    <div class="card">
+      <div class="ico">🚀</div>
+      <h3>Blazing fast</h3>
+      <p>Our cutting-edge platform seamlessly empowers your team to unlock the power of data.</p>
+    </div>
+    <div class="card">
+      <div class="ico">🔒</div>
+      <h3>Secure by default</h3>
+      <p>World-class security that seamlessly protects everything your business cares about.</p>
+    </div>
+    <div class="card">
+      <div class="ico">⚡</div>
+      <h3>Always on</h3>
+      <p>Robust infrastructure delivering comprehensive coverage around the clock, every day.</p>
+    </div>
+  </div>
+
+  <p class="num">01</p>
+
+  <p class="stat">Trusted by 10,000+ happy customers with 99.9% uptime — every single day.</p>
+
+  <p class="quote">
+    "This product completely transformed how our team works."
+    Sarah M., Marketing Director
+  </p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "note": "Single source of truth for mikedesign. Adding a tell here makes every command inherit it. Severity 'hard' gates a result; 'advisory' is reported for judgment and never blocks. Scope 'rendered' needs computed styles collected from a real browser; 'text' runs on visible text from either source.",
+
+  "budgets": {
+    "_note": "Word ceilings by surface type. 'read' surfaces (docs, legal, articles) deliberately have no body ceiling. Override per project in the DESIGN.md config block.",
+    "persuade": { "headline": 8, "subhead": 20, "body": 40, "control": 3, "item": 15 },
+    "operate":  { "headline": 6, "subhead": 12, "body": 25, "control": 3, "item": 12 },
+    "read":     { "headline": 12, "subhead": 30, "body": null, "control": 3, "item": 40 }
+  },
+
+  "budgetSeverity": {
+    "_note": "Overflow on the compressible roles gates. Prose is reported, because a legitimate long paragraph is a judgment call.",
+    "headline": "hard",
+    "subhead": "hard",
+    "control": "hard",
+    "item": "advisory",
+    "body": "advisory"
+  },
+
+  "rules": [
+    {
+      "id": "indigo-violet-default",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Indigo/violet default palette",
+      "why": "The single most-cited AI tell. Tailwind's indigo-500 default leaked into a generation of generated interfaces, so this hue band now reads as 'nobody chose this'.",
+      "fix": "Pick a hue from the brief, the product, or the use scene. If the brand really is violet, declare it in the DESIGN.md palette and this stops firing.",
+      "test": {
+        "type": "color-band",
+        "props": ["color", "backgroundColor", "borderTopColor", "fill"],
+        "hue": [225, 290],
+        "satMin": 0.35,
+        "lightRange": [0.3, 0.85]
+      }
+    },
+    {
+      "id": "gradient-text",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Gradient applied to text",
+      "why": "Decoration standing in for hierarchy, and a reliable generated-page marker.",
+      "fix": "Emphasis comes from weight, size, or space.",
+      "test": {
+        "type": "computed",
+        "all": [
+          { "prop": "webkitBackgroundClip", "match": "text" },
+          { "prop": "backgroundImage", "match": "gradient" }
+        ]
+      }
+    },
+    {
+      "id": "eyebrow-label",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Eyebrow / kicker label above a heading",
+      "why": "A small uppercase label announcing the section the heading is about to name. Pure filler; the heading already carries its own weight.",
+      "fix": "Delete it. If it holds real information, fold that into the heading.",
+      "test": { "type": "eyebrow", "maxWords": 4 }
+    },
+    {
+      "id": "emoji-as-icon",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Emoji standing in for an icon system",
+      "why": "Emoji render differently on every platform, cannot inherit stroke weight or colour, and signal that no icon decision was made.",
+      "fix": "Draw the icon, or use one real library at a consistent stroke and weight.",
+      "test": { "type": "emoji-icon" }
+    },
+    {
+      "id": "halo-shadow",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Zero-offset glow used as depth",
+      "why": "A shadow with no offset is a coloured halo, not depth. Real depth implies a light source, so it has direction.",
+      "fix": "Give the shadow an offset and a soft blur, or remove it.",
+      "test": { "type": "shadow", "mode": "zero-offset", "minBlur": 8 }
+    },
+    {
+      "id": "default-display-font",
+      "severity": "hard",
+      "scope": "rendered",
+      "title": "Unspecified default typeface as the display voice",
+      "why": "Inter and the platform sans are what you get when nobody chose a typeface. On a display element that absence is visible.",
+      "fix": "Source and self-host a face whose character matches the brief, then declare it in the DESIGN.md fonts block.",
+      "test": {
+        "type": "font-default",
+        "selectors": ["h1", "h2", ".display", "[data-role=headline]"],
+        "families": ["inter", "system-ui", "-apple-system", "blinkmacsystemfont", "segoe ui", "roboto", "helvetica neue", "arial"]
+      }
+    },
+    {
+      "id": "fabricated-testimonial",
+      "severity": "hard",
+      "scope": "text",
+      "title": "Fabricated testimonial or attribution",
+      "why": "Invented people presented as real customers. Beyond being a tell, it is a claim you cannot stand behind.",
+      "fix": "Use a real quote with a real name, or cut the section until you have one.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "[A-Z][a-z]+\\s+[A-Z]\\.\\s*,\\s*(CEO|CTO|COO|Founder|Co-?founder|Director|VP|Head of|Manager|Marketing|Product|Design|Engineering)",
+        "flags": "g"
+      }
+    },
+    {
+      "id": "fabricated-metric",
+      "severity": "hard",
+      "scope": "text",
+      "title": "Round invented metric presented as fact",
+      "why": "'10,000+ happy customers' and '99.9% uptime' with nothing behind them. An invented number reads as a real claim.",
+      "fix": "Use a measured number, or make the point without one.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(\\d{1,3},?\\d{3}\\+|\\d{2,3}(\\.\\d)?%)\\s+(happy|satisfied|trusted|active|uptime|faster|more|increase|growth|customers|users|teams|companies)",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "em-dash-in-copy",
+      "severity": "hard",
+      "scope": "text",
+      "title": "Em dash in interface copy",
+      "why": "One of the most reliable machine-written markers, and against house style.",
+      "fix": "Restructure with commas, colons, parentheses, or two sentences.",
+      "test": { "type": "text-pattern", "pattern": "\\u2014", "flags": "g" }
+    },
+
+    {
+      "id": "identical-card-row",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Row of near-identical icon + heading + text cards",
+      "why": "The default page scaffold when no structure was chosen. Cards are the lazy container.",
+      "fix": "Let the content decide the structure. Different things should look different.",
+      "test": { "type": "repeat-structure", "minRepeats": 3, "minSimilarity": 0.9 }
+    },
+    {
+      "id": "glass-decoration",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Backdrop blur used as decoration",
+      "why": "Glass is a specific effect for layering over content. Applied to a static panel it is costume.",
+      "fix": "Keep it only where something actually shows through and moves behind it.",
+      "test": { "type": "computed", "all": [{ "prop": "backdropFilter", "match": "blur" }] }
+    },
+    {
+      "id": "gradient-orb",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Blurred gradient orb behind the hero",
+      "why": "Atmosphere applied because the hero felt empty, not because the design called for it.",
+      "fix": "Fill the hero with the product, the proof, or nothing.",
+      "test": { "type": "orb", "minSize": 200, "minBlur": 30 }
+    },
+    {
+      "id": "section-numbering",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Decorative 01 / 02 / 03 section numbers",
+      "why": "Sequence implied where none exists.",
+      "fix": "Keep the numbers only when the reader must follow them in order.",
+      "test": { "type": "text-pattern", "pattern": "^\\s*0[1-9]\\s*$", "flags": "" }
+    },
+    {
+      "id": "filler-copy",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Filler phrasing that carries no information",
+      "why": "Sentences shaped like value propositions that say nothing specific about this product.",
+      "fix": "Say the concrete thing the product does, in the product's own language.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "(exceptional|innovative|cutting[- ]edge|seamless(ly)?|robust|comprehensive|world[- ]class|best[- ]in[- ]class)\\s+\\w+|(solutions?|experiences?|results?)\\s+that\\s+(drive|deliver|empower|unlock|transform)|take\\s+your\\s+\\w+\\s+to\\s+the\\s+next\\s+level|unlock\\s+the\\s+(power|potential)|empower(s|ing)?\\s+(you|your|teams?)",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "dark-by-reflex",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Dark theme as a default reflex",
+      "why": "Dark is a decision from the use scene (who, where, ambient light), not a category habit. Chosen by reflex it is the most common single tell.",
+      "fix": "Justify it from the use scene in DESIGN.md, or start light.",
+      "test": { "type": "page-luminance", "below": 0.2 }
+    },
+    {
+      "id": "monospace-costume",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Monospace used to signal 'technical'",
+      "why": "Monospace is for code, data, and measurement. Elsewhere it is a costume.",
+      "fix": "Use the body face, and let the content carry the credibility.",
+      "test": { "type": "mono-costume" }
+    },
+    {
+      "id": "rule-of-three-headline",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Rule-of-three phrasing",
+      "why": "'Faster, simpler, and smarter.' A rhythm models reach for when there is nothing specific to say.",
+      "fix": "Keep the one claim that is true and specific. Cut the two that pad the rhythm.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "^\\s*\\w+(\\s+\\w+)?,\\s+\\w+(\\s+\\w+)?,?\\s+and\\s+\\w+",
+        "flags": "i"
+      }
+    }
+  ]
+}

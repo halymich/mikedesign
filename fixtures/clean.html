@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mikedesign fixture: clean</title>
+<!--
+  The false-positive test. This page is deliberately ordinary and correct, and
+  must produce ZERO hard findings. If a rule fires here, that rule is too
+  aggressive and would eventually get the whole linter switched off.
+-->
+<style>
+  :root {
+    --ground: #f8f7f4;
+    --ink: #0c1425;
+    --ink-soft: #4a5568;
+    --accent: #b45309;
+    --rule: #e3e0d8;
+  }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Söhne", Georgia, serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 96px 24px; }
+
+  h1 {
+    font-family: "Söhne", Georgia, serif;
+    font-size: 52px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+  }
+  .sub { font-size: 21px; color: var(--ink-soft); margin: 0 0 36px; max-width: 34ch; }
+
+  .cta {
+    display: inline-block;
+    padding: 13px 22px;
+    background: var(--accent);
+    color: var(--ground);
+    border-radius: 4px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(12, 20, 37, .10);
+  }
+  .cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  .rule { border: 0; border-top: 1px solid var(--rule); margin: 72px 0; }
+
+  h2 { font-size: 30px; letter-spacing: -0.01em; margin: 0 0 14px; }
+  p { max-width: 68ch; }
+  ul { padding-left: 20px; color: var(--ink-soft); }
+  li { margin-bottom: 8px; }
+
+  ::selection { background: var(--accent); color: var(--ground); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Know when your hotel price drops</h1>
+  <p class="sub">We re-check your booking after you book, then email you the moment the rate falls.</p>
+  <a class="cta" href="#">Start watching</a>
+
+  <hr class="rule">
+
+  <h2>How it works</h2>
+  <p>
+    You paste the booking. We check the same room, same dates, on the same site, on a schedule.
+    Nothing else changes.
+  </p>
+  <ul>
+    <li>Paste the confirmation you already have</li>
+    <li>We watch the rate until check-in</li>
+    <li>You rebook at the lower price, or ignore it</li>
+  </ul>
+
+  <hr class="rule">
+
+  <h2>What it costs</h2>
+  <p>
+    Free while we are in beta. If we ever charge, we will tell you before the first one.
+  </p>
+
+</div>
+</body>
+</html>
