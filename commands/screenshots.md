@@ -108,29 +108,46 @@ currently on the store makes the app look like it changed hands.
 
 ## 6. Device frames
 
-Do not draw a device with `border-radius`. A phone screen corner is a continuous curve assembled
-from bezier segments, and no circular radius matches it. Even a close radius reads as subtly wrong
-next to a real device, which is exactly the kind of tell this skill exists to prevent.
+Keep the frame simple: a subtle bezel and the screen. Do not build a photorealistic handset with
+rim highlights, glare, buttons or a drawn camera bump. That reads as a stock device mockup rather
+than as design, and it pulls attention away from the screen, which is the only part that matters.
+
+The one thing that must be exact is the corner.
+
+**A phone screen corner is a superellipse, not a circle.** Fitted against the vendor's own vector
+artwork, the iPhone measures an exponent of **2.9**. A plain circular `border-radius` scores 38
+times worse, and CSS's own `squircle` keyword (n=4) scores 28 times worse, so reaching for
+`squircle` overcorrects. Get both numbers from the measurement, not from memory:
 
 ```
 node $S/device-mask.mjs list
 node $S/device-mask.mjs "iPhone 17 Pro Max"
+#   corner extent: 255.49px = 85.2pt  (ratio 0.1936 of width)
+#   corner curve:  superellipse n=2.9  (a circle scores 38x worse)
 ```
 
-That reads the true outline out of the vector artwork Xcode already ships in the
-`.simdevicetype` bundle, at 1:1 pixel scale. `shots.mjs` calls it automatically and hands the
-template `{{devicePath}}` and `{{deviceViewBox}}`, so a template just uses the path.
+`shots.mjs` runs that automatically and hands the template `{{cornerRatio}}` and `{{cornerN}}`, so
+the CSS is just:
 
-The bezel is the same outline inset, not a second rounded rectangle. Scale x and y separately so
-the bezel stays a uniform thickness, since a uniform scale makes the top and bottom roughly twice
-the sides on a phone-shaped rectangle.
+```css
+--r: calc((var(--w) - 2 * var(--bezel)) * {{cornerRatio}});
+border-radius: calc(var(--r) + var(--bezel));
+corner-shape: superellipse({{cornerN}});
+```
 
-Two things to check before you draw anything on top:
+The bezel is padding, and the outer radius is the screen radius plus that padding. Where
+`corner-shape` is unsupported it degrades to a circle of the correct size: wrong through the
+middle of the curve, right at both ends, and far better than a guessed radius.
 
-- A simulator capture **already contains the Dynamic Island**, drawn black in the status bar. Only
-  draw one when the source screen lacks it, or you will get two.
-- Without Xcode the geometry falls back to a circular approximation. `render` says so in its
-  output, and the report must repeat that rather than implying the frame is exact.
+Three traps, all of which have already been hit:
+
+- **Clip the screen with `overflow: hidden` on the frame.** An SVG `clip-path` silently failed to
+  apply here and left square-cornered screens sitting on a rounded bezel. It was invisible in a
+  downscaled review and obvious at 1:1.
+- **Inspect corners at 1:1 before reporting.** A dark screen on a dark bezel hides this class of
+  defect completely at review size. Crop the corner and look at actual pixels.
+- **A simulator capture already contains the Dynamic Island**, drawn black in the status bar. Draw
+  another and you get two.
 
 ## 7. Three layouts, then signoff
 

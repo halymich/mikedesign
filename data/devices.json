@@ -1,7 +1,6 @@
 {
   "_note": "Store asset specs. Stores change these; every entry carries lastVerified and a source so a stale number is auditable rather than silently wrong. Anything with verified:false must be confirmed in the store console before upload.",
   "lastVerified": "2026-08-16",
-
   "ios": {
     "store": "App Store Connect",
     "source": "https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/",
@@ -9,7 +8,10 @@
       "countMin": 1,
       "countMax": 10,
       "scope": "per display class, per localization",
-      "formats": ["png", "jpg"],
+      "formats": [
+        "png",
+        "jpg"
+      ],
       "colorSpace": "RGB",
       "alpha": false,
       "tolerance": "exact pixel dimensions, no off-by-one",
@@ -18,54 +20,103 @@
     "screenshots": {
       "iphone-6.9": {
         "label": "iPhone 6.9\"",
-        "w": 1320, "h": 2868,
-        "alternates": [[1290, 2796], [1260, 2736]],
-        "landscape": [2868, 1320],
+        "w": 1320,
+        "h": 2868,
+        "alternates": [
+          [
+            1290,
+            2796
+          ],
+          [
+            1260,
+            2736
+          ]
+        ],
+        "landscape": [
+          2868,
+          1320
+        ],
         "required": true,
         "simulator": "iPhone 17 Pro Max",
         "cornerExtentRatio": 0.1936,
-        "cornerRadiusFallbackRatio": 0.129,
-        "dynamicIsland": { "wRatio": 0.284, "hRatio": 0.0387, "topRatio": 0.0115, "_note": "A simulator capture already contains the island, drawn black in the status bar. Only draw one when the source screen does not have it." },
-        "verified": true
+        "dynamicIsland": {
+          "wRatio": 0.284,
+          "hRatio": 0.0387,
+          "topRatio": 0.0115,
+          "_note": "A simulator capture already contains the island, drawn black in the status bar. Only draw one when the source screen does not have it."
+        },
+        "verified": true,
+        "cornerSuperellipse": 2.9
       },
       "ipad-13": {
         "label": "iPad 13\"",
-        "w": 2064, "h": 2752,
-        "alternates": [[2048, 2732]],
-        "landscape": [2752, 2064],
+        "w": 2064,
+        "h": 2752,
+        "alternates": [
+          [
+            2048,
+            2732
+          ]
+        ],
+        "landscape": [
+          2752,
+          2064
+        ],
         "required": "only if the app supports iPad",
         "simulator": "iPad Pro 13-inch (M5)",
         "cornerExtentRatio": 0.0373,
-        "cornerRadiusFallbackRatio": 0.025,
-        "verified": true
+        "verified": true,
+        "cornerSuperellipse": 2.7
       }
     },
     "previews": {
       "_note": "App previews are video. Up to 3 per localization.",
       "countMax": 3,
-      "durationSeconds": [15, 30],
+      "durationSeconds": [
+        15,
+        30
+      ],
       "maxFileSizeMB": 500,
       "maxFps": 30,
-      "codecs": ["H.264", "ProRes 422 (HQ)"],
-      "containers": ["mov", "m4v", "mp4"],
+      "codecs": [
+        "H.264",
+        "ProRes 422 (HQ)"
+      ],
+      "containers": [
+        "mov",
+        "m4v",
+        "mp4"
+      ],
       "source": "https://developer.apple.com/help/app-store-connect/reference/app-preview-specifications/",
       "iphone-6.9": {
         "label": "iPhone 6.9\" preview",
-        "w": 886, "h": 1920,
-        "landscape": [1920, 886],
-        "covers": ["6.9\"", "6.5\"", "6.3\"", "6.1\""],
+        "w": 886,
+        "h": 1920,
+        "landscape": [
+          1920,
+          886
+        ],
+        "covers": [
+          "6.9\"",
+          "6.5\"",
+          "6.3\"",
+          "6.1\""
+        ],
         "verified": true
       },
       "ipad-13": {
         "label": "iPad 13\" preview",
-        "w": 1200, "h": 1600,
-        "landscape": [1600, 1200],
+        "w": 1200,
+        "h": 1600,
+        "landscape": [
+          1600,
+          1200
+        ],
         "verified": false,
         "confirmBefore": "Not verified against Apple's current spec page. Check the source URL and confirm before uploading an iPad preview."
       }
     }
   },
-
   "android": {
     "store": "Google Play Console",
     "source": "https://support.google.com/googleplay/android-developer/answer/9866151",
@@ -74,7 +125,10 @@
       "countMax": 8,
       "recommendedMin": 4,
       "scope": "per device type, per localization",
-      "formats": ["png", "jpg"],
+      "formats": [
+        "png",
+        "jpg"
+      ],
       "alpha": false,
       "bitDepth": "24-bit PNG",
       "maxFileSizeMB": 8,
@@ -84,14 +138,35 @@
       "note": "Play does not scale one set across form factors. Tablet screenshots must show a real tablet layout, not an upscaled phone."
     },
     "screenshots": {
-      "phone": { "label": "Phone", "w": 1080, "h": 1920, "required": true, "verified": true },
-      "tablet-7": { "label": "7\" tablet", "w": 1200, "h": 1920, "required": "if the app targets tablets", "verified": true },
-      "tablet-10": { "label": "10\" tablet", "w": 1600, "h": 2560, "required": "if the app targets tablets", "verified": true }
+      "phone": {
+        "label": "Phone",
+        "w": 1080,
+        "h": 1920,
+        "required": true,
+        "verified": true,
+        "cornerExtentRatio": 0.09,
+        "cornerSuperellipse": 2.5
+      },
+      "tablet-7": {
+        "label": "7\" tablet",
+        "w": 1200,
+        "h": 1920,
+        "required": "if the app targets tablets",
+        "verified": true
+      },
+      "tablet-10": {
+        "label": "10\" tablet",
+        "w": 1600,
+        "h": 2560,
+        "required": "if the app targets tablets",
+        "verified": true
+      }
     },
     "graphics": {
       "feature-graphic": {
         "label": "Feature graphic",
-        "w": 1024, "h": 500,
+        "w": 1024,
+        "h": 500,
         "required": true,
         "alpha": false,
         "note": "Required for every Play listing. No transparency, and avoid putting essential text near the edges since it gets cropped in some placements.",
@@ -99,11 +174,16 @@
       }
     }
   },
-
-  "rtlLocales": ["ar", "he", "fa", "ur", "yi", "dv", "ps"],
-
-  "_cornerNote": "cornerExtentRatio is how far the display's continuous corner curve runs before the straight edge starts, as a fraction of screen width. It is NOT a border-radius: an iPhone corner is a continuous curve built from bezier segments, and no circular radius matches it. Where Xcode is present, scripts/device-mask.mjs reads the exact outline from Apple's own artwork. cornerRadiusFallbackRatio is the closest circular approximation, for machines without Xcode, and should be reported as approximate.",
-
+  "rtlLocales": [
+    "ar",
+    "he",
+    "fa",
+    "ur",
+    "yi",
+    "dv",
+    "ps"
+  ],
+  "_cornerNote": "cornerExtentRatio is how far the display's corner curve runs before the straight edge starts, as a fraction of screen width. cornerSuperellipse is the exponent of the curve, fitted to Apple's own vector artwork by scripts/device-mask.mjs: n=2 is the plain circle a border-radius draws, and CSS's squircle keyword is n=4. Neither matches. The iPhone measures n=2.9, where a circle scores 38x worse. Render with border-radius plus corner-shape: superellipse(n). Android values are approximate, since no equivalent vendor artwork ships locally.",
   "fastlane": {
     "screenshotDir": "fastlane/screenshots",
     "layout": "<screenshotDir>/<locale>/<name>.png",

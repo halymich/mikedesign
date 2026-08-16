@@ -104,22 +104,34 @@ function arg(name, fallback = null) {
  * say so, rather than shipping an approximation that claims to be exact.
  */
 function deviceGeometry(spec) {
-  const fallback = {
-    exact: false,
+  // Values recorded in devices.json, which were themselves measured.
+  const declared = {
+    measured: false,
+    ratio: spec.cornerExtentRatio || 0.12,
+    n: spec.cornerSuperellipse || 2.9,
     path: '',
     viewBox: `0 0 ${spec.w} ${spec.h}`,
-    radiusPx: Math.round(spec.w * (spec.cornerRadiusFallbackRatio || 0.12)),
   };
-  if (!spec.simulator) return fallback;
+  if (!spec.simulator) return declared;
+  // Where the vendor artwork is installed, re-measure rather than trust the
+  // stored number, so a new device or an OS change cannot silently go stale.
   const r = spawnSync(process.execPath, [join(HERE, 'device-mask.mjs'), spec.simulator, '--json'], {
     encoding: 'utf8', timeout: 20_000,
   });
-  if (r.status !== 0 || !r.stdout) return fallback;
+  if (r.status !== 0 || !r.stdout) return declared;
   try {
     const m = JSON.parse(r.stdout);
-    if (!m.path) return fallback;
-    return { exact: true, path: m.path, viewBox: m.viewBox, radiusPx: fallback.radiusPx, w: m.w, h: m.h };
-  } catch { return fallback; }
+    if (!m.cornerExtentRatio) return declared;
+    return {
+      measured: true,
+      ratio: m.cornerExtentRatio,
+      n: m.cornerSuperellipse || declared.n,
+      residual: m.cornerFit ? m.cornerFit.residual : null,
+      path: m.path || '',
+      viewBox: m.viewBox,
+      w: m.w, h: m.h,
+    };
+  } catch { return declared; }
 }
 
 /* ---------- devices ---------- */
@@ -181,9 +193,8 @@ if (process.argv[2] === 'render') {
 
   console.log(`\nrendering ${platform} ${device} at ${spec.w}x${spec.h}`);
   console.log(`  renderer: ${chrome}`);
-  console.log(`  frame:    ${geo.exact
-    ? `exact outline from ${spec.simulator} device artwork`
-    : `APPROXIMATE (${geo.radiusPx}px circular radius; no device artwork available)`}`);
+  console.log(`  corner:   ratio ${geo.ratio} of screen width, superellipse(${geo.n})` +
+    (geo.measured ? `  [measured from ${spec.simulator} artwork]` : '  [from devices.json, not re-measured]'));
   console.log(`  locales:  ${locales.join(', ')}${only ? `  (only ${only})` : ''}\n`);
 
   const tmpDir = join(dirname(resolve(templatePath)), '.shots-tmp');
@@ -228,9 +239,12 @@ if (process.argv[2] === 'render') {
         w: String(spec.w),
         h: String(spec.h),
         // Device frame geometry, so a template never has to guess a corner.
+        // cornerRatio is a fraction of the SCREEN width, so a template can size
+        // the device however it likes and still get the right corner.
+        cornerRatio: String(geo.ratio),
+        cornerN: String(geo.n),
         devicePath: geo.path,
         deviceViewBox: geo.viewBox,
-        deviceRadius: String(geo.radiusPx),
         screenW: String(geo.w || spec.w),
         screenH: String(geo.h || spec.h),
         islandW: island ? String(Math.round(spec.w * island.wRatio)) : '0',

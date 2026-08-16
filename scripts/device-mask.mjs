@@ -131,20 +131,73 @@ const first = path.match(/^M([\d.]+) ([\d.]+)/);
 const cornerX = first ? Number(first[1]) : null;
 const extent = cornerX !== null ? Math.min(cornerX, W - cornerX) : null;
 
+/*
+ * Fit a superellipse to the measured corner.
+ *
+ * The corner satisfies ((R-x)/R)^n + ((R-y)/R)^n = 1. n=2 is a plain circle,
+ * which is what border-radius draws. CSS also offers a "squircle" keyword,
+ * which is n=4. Neither is what Apple actually uses, so fit n from the real
+ * geometry instead of repeating a number off a blog post.
+ */
+function fitExponent(R) {
+  if (!R) return null;
+  const segs = path.match(/[MLCZ][^MLCZ]*/g) || [];
+  let cur = [0, 0];
+  const pts = [];
+  for (const seg of segs) {
+    const op = seg[0];
+    const n = (seg.slice(1).trim().match(/-?[\d.]+/g) || []).map(Number);
+    if (op === 'M' || op === 'L') cur = [n[0], n[1]];
+    else if (op === 'C' && n.length >= 6) {
+      const [x1, y1, x2, y2, x3, y3] = n;
+      const [x0, y0] = cur;
+      for (let i = 0; i <= 60; i++) {
+        const u = i / 60, v = 1 - u;
+        pts.push([
+          v * v * v * x0 + 3 * v * v * u * x1 + 3 * v * u * u * x2 + u * u * u * x3,
+          v * v * v * y0 + 3 * v * v * u * y1 + 3 * v * u * u * y2 + u * u * u * y3,
+        ]);
+      }
+      cur = [x3, y3];
+    }
+  }
+  const corner = pts.filter(([x, y]) => x <= R && y <= R);
+  if (corner.length < 20) return null;
+  const residual = (e) => {
+    let s = 0;
+    for (const [x, y] of corner) s += Math.abs(Math.pow((R - x) / R, e) + Math.pow((R - y) / R, e) - 1);
+    return s / corner.length;
+  };
+  let best = null;
+  for (let e = 2; e <= 8; e += 0.05) {
+    const r = residual(e);
+    if (!best || r < best.residual) best = { n: +e.toFixed(2), residual: +r.toFixed(5) };
+  }
+  return { ...best, samples: corner.length, circleResidual: +residual(2).toFixed(5) };
+}
+const fit = fitExponent(extent);
+
 if (asJson) {
   console.log(JSON.stringify({
     device: match.name, w: W, h: H, scale,
     cornerExtentPx: extent,
     cornerExtentPt: extent ? +(extent / scale).toFixed(2) : null,
     cornerExtentRatio: extent ? +(extent / W).toFixed(5) : null,
+    cornerSuperellipse: fit ? fit.n : null,
+    cornerFit: fit,
     viewBox: `0 0 ${W} ${H}`,
     path,
   }, null, 2));
 } else {
   console.log(`device:        ${match.name}`);
   console.log(`screen:        ${W}x${H} px @${scale}x  (${W / scale}x${H / scale} pt)`);
-  console.log(`corner extent: ${extent}px = ${(extent / scale).toFixed(1)}pt  (ratio ${(extent / W).toFixed(4)} of width)`);
+  console.log(`corner extent: ${extent.toFixed(2)}px = ${(extent / scale).toFixed(1)}pt  (ratio ${(extent / W).toFixed(4)} of width)`);
   console.log(`segments:      ${(path.match(/C/g) || []).length} curves`);
+  if (fit) {
+    console.log(`corner curve:  superellipse n=${fit.n}  (residual ${fit.residual} over ${fit.samples} samples)`);
+    console.log(`               a plain circular border-radius scores ${fit.circleResidual}, ${(fit.circleResidual / fit.residual).toFixed(0)}x worse`);
+    console.log('');
+    console.log(`  CSS:         border-radius: ${(extent / W).toFixed(4)} of screen width;  corner-shape: superellipse(${fit.n});`);
+  }
   console.log(`viewBox:       0 0 ${W} ${H}`);
-  console.log(`path:          ${path}`);
 }

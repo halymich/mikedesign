@@ -150,6 +150,29 @@ fi
 
 CHROME="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 if [ -x "$CHROME" ]; then
+  # The frame corner must actually be a superellipse, not a circle. Rendering
+  # the same box with and without corner-shape and comparing bytes proves the
+  # geometry is applied: identical files would mean it silently did nothing.
+  S=$(mktemp -d)
+  for variant in super circle; do
+    if [ "$variant" = super ]; then SHAPE="corner-shape:superellipse(2.9);"; else SHAPE=""; fi
+    cat > "$S/$variant.html" <<HTML
+<!doctype html><html><head><style>
+html,body{margin:0;padding:0;width:400px;height:400px;background:#fff}
+div{width:400px;height:400px;background:#000;border-radius:100px;$SHAPE}
+</style></head><body><div></div></body></html>
+HTML
+    "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+      --window-size=400,400 --screenshot="$S/$variant.png" "file://$S/$variant.html" >/dev/null 2>&1
+  done
+  if [ -f "$S/super.png" ] && [ -f "$S/circle.png" ]; then
+    if cmp -s "$S/super.png" "$S/circle.png"; then bad "corner-shape changes the rendered corner (no effect: fell back to a circle)"
+    else ok "corner-shape changes the rendered corner"; fi
+  else
+    printf '  \033[33mSKIP\033[0m  corner-shape render check (screenshot failed)\n'
+  fi
+  rm -rf "$S"
+
   R=$(mktemp -d)
   (cd fixtures/store && node ../../scripts/shots.mjs render --template template.html --data captions.json --out "$R") >/dev/null 2>&1
   check "renders every locale at exact size" "$?" "0"

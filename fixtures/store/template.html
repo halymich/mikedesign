@@ -13,15 +13,24 @@
     - dir="{{dir}}" so right-to-left locales lay out correctly
     - the caption block grows downward, so a longer translation pushes the
       device instead of overflowing a fixed box
-    - the device silhouette is {{devicePath}}, which is Apple's own vector
-      outline read from the installed simulator artwork. A phone corner is a
-      continuous curve built from bezier segments, not a circular arc, so no
-      border-radius value matches it and a mockup using one always looks
-      slightly wrong. Do not replace this with border-radius.
+    - the device corner uses {{cornerRatio}} and {{cornerN}}, measured from the
+      real device. Keep both.
+
+  On the corner. A phone screen corner is a superellipse, not a circle. Fitted
+  against Apple's own vector artwork the iPhone measures n=2.9, where a plain
+  circular border-radius scores 38x worse and CSS's own "squircle" keyword
+  (n=4) scores 28x worse. So: border-radius for the size, corner-shape for the
+  shape. Where corner-shape is unsupported it degrades to a circle of the right
+  size, which is wrong in the middle of the curve but right at both ends.
+
+  The screen is clipped by overflow on the frame, deliberately. An SVG
+  clip-path silently failed to apply here and left square-cornered screens
+  sitting on a rounded bezel, which showed up only at 1:1.
 
   Placeholders: {{caption}} {{caption_raw}} {{sub}} {{screen}} {{index}} {{total}}
                 {{locale}} {{dir}} {{w}} {{h}}
-                {{devicePath}} {{deviceViewBox}} {{deviceRadius}} {{screenW}} {{screenH}}
+                {{cornerRatio}} {{cornerN}} {{screenW}} {{screenH}}
+                {{devicePath}} {{deviceViewBox}} (exact outline, if you need SVG)
                 {{islandW}} {{islandH}} {{islandTop}}
 
   Use {{caption}} for plain text, or {{caption_raw}} when the caption carries
@@ -75,11 +84,24 @@
     padding-top: 62px;
     min-height: 0;
   }
-  .phone {
-    width: 1000px;
-    height: auto;
+
+  .device {
+    --w: 1000px;                                            /* device outer width */
+    --bezel: 16px;
+    --r: calc((var(--w) - 2 * var(--bezel)) * {{cornerRatio}});  /* screen corner */
+    width: var(--w);
+    padding: var(--bezel);
+    background: #1c1c20;
+    border-radius: calc(var(--r) + var(--bezel));
+    corner-shape: superellipse({{cornerN}});
+    overflow: hidden;
+    box-shadow: 0 46px 90px rgba(0, 0, 0, .55);
+  }
+  .device img {
     display: block;
-    filter: drop-shadow(0 46px 90px rgba(0, 0, 0, .55));
+    width: 100%;
+    border-radius: var(--r);
+    corner-shape: superellipse({{cornerN}});
   }
 </style>
 </head>
@@ -90,23 +112,7 @@
   </div>
 
   <div class="device-zone">
-    <svg class="phone" viewBox="{{deviceViewBox}}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!--
-          The screen is the same outline inset by the bezel width. x and y are
-          scaled separately on purpose: a uniform scale would make the top and
-          bottom bezels roughly twice the thickness of the sides, because the
-          device is about twice as tall as it is wide.
-        -->
-        <clipPath id="screen" clipPathUnits="userSpaceOnUse">
-          <path d="{{devicePath}}" transform="translate(18,18) scale(0.97273, 0.98745)"/>
-        </clipPath>
-      </defs>
-      <path d="{{devicePath}}" fill="#26262c"/>
-      <path d="{{devicePath}}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="5"/>
-      <image href="{{screen}}" x="0" y="0" width="{{screenW}}" height="{{screenH}}"
-             clip-path="url(#screen)" preserveAspectRatio="xMidYMid slice"/>
-    </svg>
+    <div class="device"><img src="{{screen}}" alt=""></div>
   </div>
 </body>
 </html>

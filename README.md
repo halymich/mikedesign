@@ -133,21 +133,31 @@ locale is flagged for a look, since German will wrap where English did not.
 Panels are branded from the project: `DESIGN.md` when it exists, otherwise the app's own asset
 catalog or theme. A store listing rendered in a generic style is an advert for nothing.
 
-### Device frames are measured, not eyeballed
+### Device corners are measured, not eyeballed
 
-A phone screen corner is a continuous curve built from bezier segments, not a circular arc. No
-`border-radius` value matches it, which is why most hand-built mockups look subtly wrong next to
-a real device.
+A phone screen corner is a superellipse, not a circle, which is why most hand-built mockups look
+subtly wrong next to a real device.
+
+`device-mask.mjs` reads the vendor's own vector outline out of the artwork Xcode ships inside each
+`.simdevicetype` bundle, at 1:1 pixel scale, then fits a superellipse to it:
 
 ```bash
 node scripts/device-mask.mjs "iPhone 17 Pro Max"
-# corner extent: 255.5px = 85.2pt (ratio 0.1936 of width), 24 curves
+# corner extent: 255.49px = 85.2pt  (ratio 0.1936 of width)
+# corner curve:  superellipse n=2.9  (residual 0.00237)
+#                a plain circular border-radius scores 0.09088, 38x worse
 ```
 
-That reads the true outline out of the vector artwork Xcode already ships inside each
-`.simdevicetype` bundle, at 1:1 pixel scale, and hands it to the template as an SVG path. Without
-Xcode it falls back to the closest circular radius and **says so** in the render output, rather
-than presenting an approximation as exact.
+| corner curve | residual against real geometry |
+|---|---|
+| `border-radius` alone (n=2) | 0.0909 |
+| **measured fit (n=2.9)** | **0.0024** |
+| CSS `squircle` keyword (n=4) | 0.0674 |
+
+So the common advice to reach for `squircle` overcorrects. The frame is plain CSS, kept
+deliberately simple, with `border-radius` for the size and `corner-shape: superellipse()` for the
+shape. The regression suite renders the same box with and without `corner-shape` and fails if the
+two are byte-identical, which is how it proves the geometry actually applied.
 
 ## Adding a tell
 
