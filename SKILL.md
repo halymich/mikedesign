@@ -1,7 +1,7 @@
 ---
 name: mikedesign
 description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, cutting interface copy down, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work, and not for prose or article writing.
-version: 1.1.0
+version: 1.4.0
 user-invocable: true
 argument-hint: "[system|new|refine|critique|copy|illustrate|screenshots] [target]"
 license: MIT
@@ -111,14 +111,24 @@ The skill writes into the user's project, never into itself:
     "fonts": { "display": "Söhne", "body": "Söhne" }
   },
   "targets": {
-    "web": { "platform": "web", "surfaceType": "persuade", "allow": [] },
-    "ios": { "platform": "ios", "surfaceType": "operate", "palette": ["#1c2333"] }
+    "web": {
+      "platform": "web",
+      "surfaceType": "persuade",
+      "components": ["button", "link", "input", "card", "nav"],
+      "deferred": ["table", "modal", "toast"],
+      "allow": []
+    }
   }
 }
 ```
 
 `allow` lists rule ids the brief explicitly overrode. Anything in it stops firing, so an entry
 must be traceable to something the user actually asked for.
+
+`components` is the agreed scope of the design system and `deferred` is what was deliberately
+left out. Design systems default to growing until they cover everything imaginable, and here that
+cost is charged on every command, since `DESIGN.md` is read each time. Build from `components`,
+and ask before adding to it.
 
 ## Targets
 

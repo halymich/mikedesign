@@ -92,6 +92,19 @@ STUBS=$(grep -c "ASSUMED:" "$B/.mikedesign/brief-home.md")
 check "stubs written for each gap"  "$STUBS" "8"
 node scripts/brief.mjs check "$B/.mikedesign/brief-home.md" >/dev/null 2>&1
 check "re-run does not duplicate"   "$(grep -c 'ASSUMED:' "$B/.mikedesign/brief-home.md")" "8"
+
+# A system brief must also demand scope, because an unscoped design system grows
+# to cover everything and is then re-read on every later command.
+node scripts/brief.mjs init "$B" system --type persuade >/dev/null 2>&1
+SB="$B/.mikedesign/brief-system.md"
+for f in surfaces component-scope deferred; do
+  if grep -q "^- $f:" "$SB"; then ok "system brief requires $f"; else bad "system brief requires $f"; fi
+done
+node scripts/brief.mjs check "$SB" >/dev/null 2>&1
+# 11 stubs = 12 system fields minus surface-type, which init fills in
+check "scope fields are enforced"   "$(grep -c 'ASSUMED:' "$SB")" "11"
+# and a plain surface must NOT inherit them
+check "base brief stays base"       "$(grep -c '^- surfaces:' "$B/.mikedesign/brief-home.md")" "0"
 rm -rf "$B"
 
 echo

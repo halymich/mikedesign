@@ -22,7 +22,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
-const FIELDS = [
+const BASE_FIELDS = [
   ['surface-type',    'persuade, operate or read. Decides the word budgets, so it is never optional.'],
   ['visitor',         'Who actually arrives here, and what they already know.'],
   ['success-action',  'The single thing they must do. One action, not a list.'],
@@ -33,6 +33,23 @@ const FIELDS = [
   ['real-assets',     'Genuine material available: screenshots, photography, logos, data, licensed faces.'],
   ['anti-references', 'What this must not look like. Naming the enemy is worth three positive references.'],
 ];
+
+/*
+ * Extra fields for a `system` brief.
+ *
+ * A design system with no agreed scope grows to cover everything anyone might
+ * ever need. That costs twice: once to build, and then on every single command
+ * that loads DESIGN.md afterwards. Scope is therefore a required answer, not a
+ * conversation people mean to have and forget.
+ */
+const SYSTEM_FIELDS = [
+  ['surfaces',        'The real screens or pages being built in the NEXT milestone. Not the eventual roadmap.'],
+  ['component-scope', 'Which components those surfaces genuinely need. A thing used once is markup, not a component.'],
+  ['deferred',        'What is deliberately NOT being built yet, so the next run does not re-argue it.'],
+];
+
+const FIELD_SETS = { base: BASE_FIELDS, system: [...BASE_FIELDS, ...SYSTEM_FIELDS] };
+const MARKER = /<!--\s*fields:\s*(\w+)\s*-->/;
 
 const PLACEHOLDERS = new Set(['tbd', 'todo', '?', '-', 'n/a', '<reason required>', '']);
 const isBlank = (v) => PLACEHOLDERS.has(String(v ?? '').trim().toLowerCase());
@@ -45,7 +62,7 @@ function fail(msg) { console.error(`mikedesign: ${msg}`); process.exit(2); }
 
 /* ---------- parse ---------- */
 
-function parse(md) {
+function parse(md, set) {
   const fields = {};
   const assumptions = {};
   for (const raw of md.split('\n')) {
@@ -53,7 +70,7 @@ function parse(md) {
     const a = line.match(/^-\s*ASSUMED:\s*([a-z-]+)\s*::\s*(.*)$/i);
     if (a) { assumptions[a[1].toLowerCase()] = a[2].trim(); continue; }
     const f = line.match(/^-\s*([a-z-]+)\s*:\s*(.*)$/i);
-    if (f && FIELDS.some(([k]) => k === f[1].toLowerCase())) fields[f[1].toLowerCase()] = f[2].trim();
+    if (f && set.some(([k]) => k === f[1].toLowerCase())) fields[f[1].toLowerCase()] = f[2].trim();
   }
   return { fields, assumptions };
 }
@@ -66,6 +83,12 @@ if (cmd === 'init') {
   if (!root || !surface) fail('usage: brief.mjs init <project-root> <surface> [--type persuade|operate|read]');
   const ti = argv.indexOf('--type');
   const type = ti > -1 ? argv[ti + 1] : 'TBD';
+  const fi = argv.indexOf('--fields');
+  // A `system` brief defaults to the system field set, because scoping is the
+  // whole point of that command.
+  const setName = fi > -1 ? argv[fi + 1] : (surface === 'system' ? 'system' : 'base');
+  const set = FIELD_SETS[setName];
+  if (!set) fail(`unknown field set "${setName}". Expected base or system.`);
 
   const dir = join(root, '.mikedesign');
   const path = join(dir, `brief-${surface}.md`);
@@ -74,12 +97,13 @@ if (cmd === 'init') {
 
   const body = [
     `# Brief: ${surface}`,
+    `<!-- fields: ${setName} -->`,
     '',
     'Every field below is required. Leave a field as TBD only if it genuinely cannot be',
     'answered yet; check will convert it into a recorded assumption rather than let it pass',
     'silently.',
     '',
-    ...FIELDS.map(([k, help]) => `- ${k}: ${k === 'surface-type' ? type : 'TBD'}\n  <!-- ${help} -->`),
+    ...set.map(([k, help]) => `- ${k}: ${k === 'surface-type' ? type : 'TBD'}\n  <!-- ${help} -->`),
     '',
     '## Assumptions',
     '',
@@ -102,11 +126,16 @@ if (cmd === 'check') {
   if (!existsSync(path)) fail(`no brief at ${path}. Run: brief.mjs init <project-root> <surface>`);
 
   const md = readFileSync(path, 'utf8');
-  const { fields, assumptions } = parse(md);
+  // The brief records which field set it was created with, so check cannot
+  // silently validate a system brief against the shorter base list.
+  const marker = md.match(MARKER);
+  const setName = marker && FIELD_SETS[marker[1]] ? marker[1] : 'base';
+  const set = FIELD_SETS[setName];
+  const { fields, assumptions } = parse(md, set);
 
   const answered = [];
   const gaps = [];
-  for (const [key] of FIELDS) {
+  for (const [key] of set) {
     if (!isBlank(fields[key])) answered.push(key);
     else gaps.push(key);
   }
@@ -159,7 +188,7 @@ if (cmd === 'check') {
 
   console.log('');
   console.log(`mikedesign brief · ${path}`);
-  console.log(`  answered: ${answered.length}/${FIELDS.length}`);
+  console.log(`  answered: ${answered.length}/${set.length}  (${setName} fields)`);
   if (recorded.length) {
     console.log('');
     console.log(`  ASSUMPTIONS ON RECORD (${recorded.length}), lead the report with these:`);
@@ -173,7 +202,7 @@ if (cmd === 'check') {
     console.log('');
     console.log(`  STUBS WRITTEN, REASONS MISSING (${pending.length}):`);
     for (const key of pending) {
-      const help = FIELDS.find(([k]) => k === key)[1];
+      const help = set.find(([k]) => k === key)[1];
       console.log(`    · ${key}: ${help}`);
     }
     console.log('');

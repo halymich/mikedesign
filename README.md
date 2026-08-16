@@ -29,6 +29,27 @@ directly.
 The last sentence matters. Without it the skill fires on "move that 2px" and you will turn it
 off within a week.
 
+## Your first run
+
+Start in the project you want to design, and run:
+
+```
+/mikedesign system
+```
+
+It will find how many interfaces the project has, read whatever design decisions are already
+visible in the code, interview you, **agree the scope of the system with you**, then show you
+three real rendered directions to choose from before writing anything.
+
+That scope step matters more than it sounds. Design systems default to growing until they cover
+every component anyone might ever need, and here that cost is charged twice: once to build, and
+then on every later command, because `DESIGN.md` is re-read each time. Most projects want
+foundations only, or foundations plus five components. The command will tell you what it proposes
+to leave out, and record it so the decision is not re-argued next time.
+
+Everything lands in `.mikedesign/` in your project. Commit `DESIGN.md` and the briefs; the
+critique files are regenerable and belong in `.gitignore`.
+
 ## Commands
 
 | Command | What it does |

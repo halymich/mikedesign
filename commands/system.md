@@ -51,7 +51,45 @@ it is working, where and under what light is it used.
 
 Ask about assets before designing, not after. What is available decides what is possible.
 
-## 4. Three concepts, rendered
+## 4. Scope the system before building it
+
+A design system with no agreed scope grows to cover everything anyone might ever need. That is
+the default failure here, and it costs twice: once to build, and then again on **every later
+command**, because `DESIGN.md` is re-read each time. A bloated system is a tax charged forever.
+
+`brief.mjs` makes this a required answer for a `system` brief: `surfaces`, `component-scope` and
+`deferred`. Get them agreed before designing anything.
+
+**Derive components from real surfaces, not from a checklist.** Ask what is genuinely being built
+in the next milestone, not what the roadmap says eventually exists. Then list only what those
+surfaces need. A five-page marketing site does not need a data table, a toast, or a modal, and
+building them is pure waste.
+
+**A component earns its place by appearing on at least two surfaces.** Used once, it is markup on
+that page. Promote it later if a second use appears; that is cheap, and guessing wrong up front
+is not.
+
+**Say the cost out loud** when proposing the list. Each component is something to build, verify,
+keep consistent and re-read forever. The user is entitled to know what they are buying.
+
+When the user genuinely cannot name their surfaces yet, offer these as shorthand and let them
+correct it:
+
+- **Foundations only.** Type scale, palette, spacing, radius, depth, motion, voice. No components
+  at all. Right for a landing page, a prototype, or anything under about three surfaces.
+- **Foundations plus essentials.** Adds button, link, input, card, and navigation. Right for a
+  small marketing site or a single-purpose app.
+- **Full system.** Adds modal, table, tabs, menu, toast, empty and error states, and data
+  visualisation. Only worth it for a product with many surfaces and more than one person building
+  on it.
+
+Most projects want the first or second. Reaching for the third by default is the thing this step
+exists to prevent.
+
+**Record what was excluded**, in `deferred`, with the reason. Otherwise the next run reopens the
+same argument and quietly builds it anyway.
+
+## 5. Three concepts, rendered
 
 Not descriptions. Three real, working, viewable sections the user can look at side by side.
 People react accurately to pixels and inaccurately to adjectives, and this step exists to stop
@@ -76,7 +114,7 @@ Render into a scratch directory, never into the project tree, so an interrupted 
 nothing behind. Show them with real copy from the brief, at desktop and mobile. Then ask which
 one, and equally what to steal from the losers.
 
-## 5. Write DESIGN.md
+## 6. Write DESIGN.md
 
 Human prose plus exactly one fenced json block. The prose is for the user; the block is the
 contract the scripts read.
@@ -96,20 +134,34 @@ overrode and why.
     "fonts": { "display": "Söhne", "body": "Söhne" }
   },
   "targets": {
-    "web": { "platform": "web", "surfaceType": "persuade", "allow": [] },
-    "ios": { "platform": "ios", "surfaceType": "operate", "palette": ["#1c2333"] }
+    "web": {
+      "platform": "web",
+      "surfaceType": "persuade",
+      "components": ["button", "link", "input", "card", "nav"],
+      "deferred": ["table", "modal", "toast"],
+      "allow": []
+    }
   }
 }
 ```
 
+`components` is the agreed scope, and `deferred` is what was deliberately left out. Both are
+load-bearing: `new` builds against `components` and must ask before inventing anything outside
+it, and `deferred` is what stops the next run quietly rebuilding the argument.
+
 A single-interface project can skip `targets` entirely and put the brand keys at the top level.
 Do not add a targets map to a project that has one interface.
+
+**Keep the whole file under about 150 lines.** Every later command reads it, so length is a
+recurring cost, not a one-off. Foundations get real numbers stated once. A component gets a line
+naming it and its states, not a specification. If it is growing past that, the scope is too wide
+and the honest fix is to cut components, not to write more tersely.
 
 The palette block is load-bearing: colours declared here stop the linter reporting them as
 generic. A genuinely violet brand declares violet and the rule goes quiet. That is the override
 working as intended.
 
-## 6. Verify and report
+## 7. Verify and report
 
 Lint the chosen concept as built (see the Verification section of SKILL.md). Report the
 assumptions first, then the direction chosen and what it commits the project to, then what the

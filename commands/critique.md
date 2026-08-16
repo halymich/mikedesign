@@ -41,7 +41,12 @@ documentation.
 
 ## 4. Write the backlog
 
-Write `.mikedesign/critique-<surface>.md`, gitignored, ordered by severity:
+Write `.mikedesign/critique-<surface>.md`, ordered by severity. Add `.mikedesign/critique-*.md`
+to the project's `.gitignore` if it is not already there: findings are regenerable and go stale,
+so committing them just adds noise to every later diff. `DESIGN.md` and the briefs do get
+committed.
+
+Sections, in this order:
 
 - **P0** hard lint findings, broken states, unreadable contrast, anything shipping-blocking
 - **P1** craft floor failures, hierarchy problems, copy that misleads
