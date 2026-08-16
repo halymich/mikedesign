@@ -98,10 +98,19 @@ for (const hit of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
 }
 if (!content) { console.error('mikedesign: could not decompress the outline path.'); process.exit(2); }
 
-// The leading "0 2868 m ... h W* n" is the clipping rectangle, not the shape.
-// Drop everything up to and including the clip operator.
-const clipEnd = content.search(/\bW\*?\s+n\b/);
-const body = clipEnd > -1 ? content.slice(clipEnd).replace(/^\s*W\*?\s+n/, '') : content;
+/*
+ * These PDFs do not FILL the screen outline, they CLIP to it and then fill a
+ * full rectangle through the clip. So the geometry sits between the first clip
+ * operator and the second, and taking everything after the first one collects
+ * the full rectangle instead of the shape. Doing exactly that produced a path
+ * that rendered as a solid black rectangle while still looking plausible as a
+ * string, so bound the slice at both ends and reject anything with more than
+ * one subpath.
+ */
+const firstClip = content.search(/\bW\*?\s+n\b/);
+let body = firstClip > -1 ? content.slice(firstClip).replace(/^\s*W\*?\s+n/, '') : content;
+const nextClip = body.search(/\bW\*?\s+n\b|\bre\b|\bf\*?\b/);
+if (nextClip > -1) body = body.slice(0, nextClip);
 
 // PDF puts the origin bottom-left, SVG puts it top-left, so y flips.
 const tokens = body.trim().split(/[\s\r\n]+/);
@@ -124,6 +133,13 @@ for (const tk of tokens) {
 
 const path = out.join(' ');
 if (!path.includes('C')) { console.error('mikedesign: extracted path has no curves, refusing to report it as a screen outline.'); process.exit(2); }
+// One shape, one subpath. More than one means a bounding rectangle came along
+// for the ride, and filling that covers the whole canvas.
+const subpaths = (path.match(/M/g) || []).length;
+if (subpaths !== 1) {
+  console.error(`mikedesign: extracted ${subpaths} subpaths, expected 1. That usually means a clipping rectangle was captured alongside the outline.`);
+  process.exit(2);
+}
 
 // Corner extent: how far the curve runs before the straight edge begins. Not a
 // radius, and deliberately not reported as one.
@@ -183,7 +199,12 @@ if (asJson) {
     cornerExtentPx: extent,
     cornerExtentPt: extent ? +(extent / scale).toFixed(2) : null,
     cornerExtentRatio: extent ? +(extent / W).toFixed(5) : null,
-    cornerSuperellipse: fit ? fit.n : null,
+    cornerExponent: fit ? fit.n : null,
+    // CSS corner-shape takes a log2 parameter, not the exponent: round is
+    // superellipse(1) and squircle is superellipse(2), so the exponent is 2^k.
+    // Passing the exponent straight through asks for 2^2.9, a near-square
+    // corner, which is how this went wrong the first time.
+    cornerSuperellipseCss: fit ? +Math.log2(fit.n).toFixed(3) : null,
     cornerFit: fit,
     viewBox: `0 0 ${W} ${H}`,
     path,
@@ -194,10 +215,12 @@ if (asJson) {
   console.log(`corner extent: ${extent.toFixed(2)}px = ${(extent / scale).toFixed(1)}pt  (ratio ${(extent / W).toFixed(4)} of width)`);
   console.log(`segments:      ${(path.match(/C/g) || []).length} curves`);
   if (fit) {
-    console.log(`corner curve:  superellipse n=${fit.n}  (residual ${fit.residual} over ${fit.samples} samples)`);
-    console.log(`               a plain circular border-radius scores ${fit.circleResidual}, ${(fit.circleResidual / fit.residual).toFixed(0)}x worse`);
+    const css = +Math.log2(fit.n).toFixed(3);
+    console.log(`corner curve:  |x|^n + |y|^n = 1 with n=${fit.n}  (residual ${fit.residual} over ${fit.samples} samples)`);
+    console.log(`               a plain circle (n=2) scores ${fit.circleResidual}, ${(fit.circleResidual / fit.residual).toFixed(0)}x worse`);
     console.log('');
-    console.log(`  CSS:         border-radius: ${(extent / W).toFixed(4)} of screen width;  corner-shape: superellipse(${fit.n});`);
+    console.log(`  CSS:         border-radius: ${(extent / W).toFixed(4)} of screen width;  corner-shape: superellipse(${css});`);
+    console.log(`               CSS takes log2 of the exponent: round=superellipse(1), squircle=superellipse(2).`);
   }
   console.log(`viewBox:       0 0 ${W} ${H}`);
 }

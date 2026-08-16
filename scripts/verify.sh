@@ -137,13 +137,30 @@ if [ -d /Library/Developer/CoreSimulator/Profiles/DeviceTypes ]; then
   node scripts/device-mask.mjs list >/dev/null 2>&1
   check "device types enumerate"           "$?" "0"
   MASK=$(node scripts/device-mask.mjs "iPhone 17 Pro Max" --json 2>/dev/null)
-  CURVES=$(printf '%s' "$MASK" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log((JSON.parse(s).path.match(/C/g)||[]).length)}catch{console.log(0)}})')
-  # A real screen outline is a continuous curve of many segments. One or two
-  # would mean we grabbed a rounded rectangle and the whole point was lost.
+  m() { printf '%s' "$MASK" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);console.log($1)}catch{console.log('ERR')}})"; }
+
+  CURVES=$(m "(j.path.match(/C/g)||[]).length")
   if [ "${CURVES:-0}" -ge 8 ]; then ok "screen outline is a continuous curve ($CURVES segments)"
   else bad "screen outline is a continuous curve (got $CURVES segments)"; fi
-  SCALE=$(printf '%s' "$MASK" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).scale)}catch{console.log("?")}})')
-  check "device scale read from plist"     "$SCALE" "3"
+
+  # The outline must be ONE subpath. Capturing the clipping rectangle alongside
+  # it produced a path that looked fine as a string and filled the entire canvas
+  # when rendered, which silently invalidated every measurement taken from it.
+  check "outline is a single subpath"      "$(m "(j.path.match(/M/g)||[]).length")" "1"
+  check "device scale read from plist"     "$(m "j.scale")" "3"
+
+  # Sanity-bound the geometry. A full rectangle would fit an enormous exponent
+  # and a corner extent near zero, so both ranges catch a broken extraction.
+  EXP=$(m "j.cornerExponent")
+  RAT=$(m "j.cornerExtentRatio")
+  if node -e "process.exit(($EXP>=2.4 && $EXP<=3.6)?0:1)" 2>/dev/null; then ok "corner exponent in range ($EXP)"; else bad "corner exponent in range (got $EXP)"; fi
+  if node -e "process.exit(($RAT>=0.15 && $RAT<=0.25)?0:1)" 2>/dev/null; then ok "corner extent ratio in range ($RAT)"; else bad "corner extent ratio in range (got $RAT)"; fi
+
+  # CSS corner-shape takes log2 of the exponent. Passing the exponent straight
+  # through asks for 2^2.9 and draws a near-square corner, which is the exact
+  # bug this guards.
+  CSS=$(m "j.cornerSuperellipseCss")
+  if node -e "process.exit(Math.abs($CSS-Math.log2($EXP))<0.01?0:1)" 2>/dev/null; then ok "css value is log2 of the exponent ($CSS)"; else bad "css value is log2 of the exponent (got $CSS for exponent $EXP)"; fi
 else
   printf '  \033[33mSKIP\033[0m  device mask tests (no Xcode simulator profiles)\n'
 fi

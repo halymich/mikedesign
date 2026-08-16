@@ -46,7 +46,8 @@
           "_note": "A simulator capture already contains the island, drawn black in the status bar. Only draw one when the source screen does not have it."
         },
         "verified": true,
-        "cornerSuperellipse": 2.9
+        "cornerExponent": 2.9,
+        "cornerSuperellipseCss": 1.536
       },
       "ipad-13": {
         "label": "iPad 13\"",
@@ -66,7 +67,8 @@
         "simulator": "iPad Pro 13-inch (M5)",
         "cornerExtentRatio": 0.0373,
         "verified": true,
-        "cornerSuperellipse": 2.7
+        "cornerExponent": 2.7,
+        "cornerSuperellipseCss": 1.433
       }
     },
     "previews": {
@@ -145,7 +147,8 @@
         "required": true,
         "verified": true,
         "cornerExtentRatio": 0.09,
-        "cornerSuperellipse": 2.5
+        "cornerExponent": 2.6,
+        "cornerSuperellipseCss": 1.379
       },
       "tablet-7": {
         "label": "7\" tablet",
@@ -183,7 +186,7 @@
     "dv",
     "ps"
   ],
-  "_cornerNote": "cornerExtentRatio is how far the display's corner curve runs before the straight edge starts, as a fraction of screen width. cornerSuperellipse is the exponent of the curve, fitted to Apple's own vector artwork by scripts/device-mask.mjs: n=2 is the plain circle a border-radius draws, and CSS's squircle keyword is n=4. Neither matches. The iPhone measures n=2.9, where a circle scores 38x worse. Render with border-radius plus corner-shape: superellipse(n). Android values are approximate, since no equivalent vendor artwork ships locally.",
+  "_cornerNote": "cornerExtentRatio is how far the corner curve runs before the straight edge starts, as a fraction of screen width. cornerExponent is n in |x|^n + |y|^n = 1, fitted to the vendor's own vector artwork by scripts/device-mask.mjs. iPhone measures n=2.9, where a circle (n=2) is 38x worse. cornerSuperellipseCss is what CSS corner-shape actually wants, which is LOG2 of the exponent: round is superellipse(1) and squircle is superellipse(2). Passing the exponent straight into CSS asks for 2^2.9, a near-square corner. Verified by pixel diff against the real outline: superellipse(1.536) mismatches 142px of 65536, a circle 5952, squircle 3351. Android values are approximate; no vendor artwork ships locally.",
   "fastlane": {
     "screenshotDir": "fastlane/screenshots",
     "layout": "<screenshotDir>/<locale>/<name>.png",

@@ -144,20 +144,23 @@ subtly wrong next to a real device.
 ```bash
 node scripts/device-mask.mjs "iPhone 17 Pro Max"
 # corner extent: 255.49px = 85.2pt  (ratio 0.1936 of width)
-# corner curve:  superellipse n=2.9  (residual 0.00237)
-#                a plain circular border-radius scores 0.09088, 38x worse
+# corner curve:  |x|^n + |y|^n = 1 with n=2.9   (a circle scores 38x worse)
+# CSS:           corner-shape: superellipse(1.536)
 ```
 
-| corner curve | residual against real geometry |
-|---|---|
-| `border-radius` alone (n=2) | 0.0909 |
-| **measured fit (n=2.9)** | **0.0024** |
-| CSS `squircle` keyword (n=4) | 0.0674 |
+**CSS `corner-shape` takes log2 of the exponent, not the exponent.** `round` is
+`superellipse(1)` and `squircle` is `superellipse(2)`, so an exponent of 2.9 becomes
+`superellipse(1.536)`. Passing 2.9 straight through asks for an exponent of 2^2.9 and draws a
+nearly square corner. Pixel-diffed against the real outline over a 256×256 corner box:
 
-So the common advice to reach for `squircle` overcorrects. The frame is plain CSS, kept
-deliberately simple, with `border-radius` for the size and `corner-shape: superellipse()` for the
-shape. The regression suite renders the same box with and without `corner-shape` and fails if the
-two are byte-identical, which is how it proves the geometry actually applied.
+| corner | mismatched pixels of 65,536 |
+|---|---|
+| `border-radius` alone, `superellipse(1)` | 5,952 |
+| **`superellipse(1.536)`, measured** | **142** |
+| `squircle` keyword, `superellipse(2)` | 3,351 |
+
+So `squircle` overcorrects and a circle undercorrects. The frame is otherwise plain CSS and kept
+deliberately simple: `border-radius` for the size, `corner-shape` for the shape.
 
 ## Adding a tell
 

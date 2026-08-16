@@ -115,15 +115,19 @@ than as design, and it pulls attention away from the screen, which is the only p
 The one thing that must be exact is the corner.
 
 **A phone screen corner is a superellipse, not a circle.** Fitted against the vendor's own vector
-artwork, the iPhone measures an exponent of **2.9**. A plain circular `border-radius` scores 38
-times worse, and CSS's own `squircle` keyword (n=4) scores 28 times worse, so reaching for
-`squircle` overcorrects. Get both numbers from the measurement, not from memory:
+artwork, the iPhone measures an exponent of **2.9** in `|x|^n + |y|^n = 1`.
+
+**CSS `corner-shape` takes log2 of that, not the exponent itself.** `round` is `superellipse(1)`
+and `squircle` is `superellipse(2)`, so 2.9 becomes `superellipse(1.536)`. Passing 2.9 straight
+through asks for an exponent of 2^2.9 and draws a nearly square corner. Get both numbers from the
+measurement, never from memory:
 
 ```
 node $S/device-mask.mjs list
 node $S/device-mask.mjs "iPhone 17 Pro Max"
 #   corner extent: 255.49px = 85.2pt  (ratio 0.1936 of width)
-#   corner curve:  superellipse n=2.9  (a circle scores 38x worse)
+#   corner curve:  |x|^n + |y|^n = 1 with n=2.9
+#   CSS:           corner-shape: superellipse(1.536)
 ```
 
 `shots.mjs` runs that automatically and hands the template `{{cornerRatio}}` and `{{cornerN}}`, so

@@ -105,10 +105,13 @@ function arg(name, fallback = null) {
  */
 function deviceGeometry(spec) {
   // Values recorded in devices.json, which were themselves measured.
+  // n is the CSS corner-shape parameter, which is log2 of the real exponent.
+  // round is superellipse(1), squircle is superellipse(2).
   const declared = {
     measured: false,
     ratio: spec.cornerExtentRatio || 0.12,
-    n: spec.cornerSuperellipse || 2.9,
+    n: spec.cornerSuperellipseCss || 1.536,
+    exponent: spec.cornerExponent || 2.9,
     path: '',
     viewBox: `0 0 ${spec.w} ${spec.h}`,
   };
@@ -125,7 +128,8 @@ function deviceGeometry(spec) {
     return {
       measured: true,
       ratio: m.cornerExtentRatio,
-      n: m.cornerSuperellipse || declared.n,
+      n: m.cornerSuperellipseCss || declared.n,
+      exponent: m.cornerExponent || declared.exponent,
       residual: m.cornerFit ? m.cornerFit.residual : null,
       path: m.path || '',
       viewBox: m.viewBox,
@@ -193,7 +197,7 @@ if (process.argv[2] === 'render') {
 
   console.log(`\nrendering ${platform} ${device} at ${spec.w}x${spec.h}`);
   console.log(`  renderer: ${chrome}`);
-  console.log(`  corner:   ratio ${geo.ratio} of screen width, superellipse(${geo.n})` +
+  console.log(`  corner:   ratio ${geo.ratio} of screen width, exponent ${geo.exponent} -> css superellipse(${geo.n})` +
     (geo.measured ? `  [measured from ${spec.simulator} artwork]` : '  [from devices.json, not re-measured]'));
   console.log(`  locales:  ${locales.join(', ')}${only ? `  (only ${only})` : ''}\n`);
 

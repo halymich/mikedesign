@@ -17,11 +17,20 @@
       real device. Keep both.
 
   On the corner. A phone screen corner is a superellipse, not a circle. Fitted
-  against Apple's own vector artwork the iPhone measures n=2.9, where a plain
-  circular border-radius scores 38x worse and CSS's own "squircle" keyword
-  (n=4) scores 28x worse. So: border-radius for the size, corner-shape for the
-  shape. Where corner-shape is unsupported it degrades to a circle of the right
-  size, which is wrong in the middle of the curve but right at both ends.
+  against the vendor's own vector artwork, the iPhone measures an exponent of
+  2.9 in |x|^n + |y|^n = 1.
+
+  CSS corner-shape does NOT take that exponent. It takes log2 of it: round is
+  superellipse(1) and squircle is superellipse(2). So 2.9 becomes
+  superellipse(1.536). Passing 2.9 straight through asks for an exponent of
+  2^2.9, which is very nearly a square corner. Do not "simplify" this by
+  dropping the conversion.
+
+  Checked by pixel diff against the real outline over a 256x256 corner box:
+  superellipse(1.536) mismatches 142px, a plain circle 5952, squircle 3351.
+
+  Where corner-shape is unsupported it degrades to a circle of the right size,
+  which is wrong through the middle of the curve but right at both ends.
 
   The screen is clipped by overflow on the frame, deliberately. An SVG
   clip-path silently failed to apply here and left square-cornered screens
