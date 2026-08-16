@@ -23,12 +23,13 @@ const RULES = JSON.parse(readFileSync(join(HERE, '..', 'data', 'rules.json'), 'u
 /* ---------- args ---------- */
 
 const argv = process.argv.slice(2);
-const opt = { rendered: null, source: [], design: null, surface: null, json: false };
+const opt = { rendered: null, source: [], design: null, surface: null, target: null, json: false };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--rendered') opt.rendered = argv[++i];
   else if (a === '--design') opt.design = argv[++i];
   else if (a === '--surface') opt.surface = argv[++i];
+  else if (a === '--target') opt.target = argv[++i];
   else if (a === '--json') opt.json = true;
   else if (a === '--source') { while (argv[i + 1] && !argv[i + 1].startsWith('--')) opt.source.push(argv[++i]); }
   else if (a === '--help' || a === '-h') { usage(); process.exit(2); }
@@ -36,7 +37,7 @@ for (let i = 0; i < argv.length; i++) {
 }
 
 function usage() {
-  console.error('usage: lint.mjs [--rendered <json>] [--source <path...>] [--design <DESIGN.md>] [--surface persuade|operate|read] [--json]');
+  console.error('usage: lint.mjs [--rendered <json>] [--source <path...>] [--design <DESIGN.md>] [--target <name>] [--surface persuade|operate|read] [--json]');
 }
 
 if (!opt.rendered && opt.source.length === 0) {
@@ -50,27 +51,67 @@ if (!opt.rendered && opt.source.length === 0) {
  * DESIGN.md is human prose plus exactly one fenced ```json block that scripts
  * read. Parsing prose for a palette is guesswork; a fenced block is a contract.
  */
-function loadDesign(path) {
-  const empty = { palette: [], fonts: {}, allow: [], budgetOverrides: {}, surfaceType: null, found: false };
+function loadDesign(path, wantTarget) {
+  const empty = { palette: [], fonts: {}, allow: [], budgetOverrides: {}, surfaceType: null, found: false, targets: [], target: null };
   if (!path || !existsSync(path)) return empty;
   const md = readFileSync(path, 'utf8');
   const m = md.match(/```json\s*([\s\S]*?)```/);
   if (!m) return { ...empty, found: true, parseError: 'no fenced json config block found' };
-  try {
-    const cfg = JSON.parse(m[1]);
-    return {
-      palette: cfg.palette || [],
-      fonts: cfg.fonts || {},
-      allow: cfg.allow || [],
-      budgetOverrides: cfg.budgetOverrides || {},
-      surfaceType: cfg.surfaceType || null,
-      found: true,
-    };
-  } catch (e) {
-    return { ...empty, found: true, parseError: e.message };
+
+  let cfg;
+  try { cfg = JSON.parse(m[1]); }
+  catch (e) { return { ...empty, found: true, parseError: e.message }; }
+
+  // A project can carry several interfaces (an app, a marketing site, a
+  // dashboard). They share one brand and differ in platform, stack and the
+  // components actually available, so brand sits at the top level once and each
+  // target overrides only what genuinely differs. One copy of the brand means
+  // it cannot drift between surfaces.
+  const brand = cfg.brand || cfg;
+  const targets = cfg.targets && typeof cfg.targets === 'object' ? cfg.targets : null;
+
+  const base = {
+    palette: brand.palette || [],
+    fonts: brand.fonts || {},
+    allow: brand.allow || [],
+    budgetOverrides: brand.budgetOverrides || {},
+    surfaceType: brand.surfaceType || null,
+    found: true,
+    targets: targets ? Object.keys(targets) : [],
+    target: null,
+  };
+
+  if (!targets) return base;
+
+  const names = Object.keys(targets);
+  let pick = wantTarget;
+  if (!pick) {
+    // Never guess which interface is being checked. One target is unambiguous;
+    // several is a question, not a default.
+    if (names.length === 1) pick = names[0];
+    else return { ...base, targetError: `this project declares ${names.length} targets (${names.join(', ')}). Pass --target <name>.` };
   }
+  if (!targets[pick]) return { ...base, targetError: `unknown target "${pick}". Declared: ${names.join(', ') || 'none'}.` };
+
+  const t = targets[pick];
+  return {
+    ...base,
+    target: pick,
+    platform: t.platform || null,
+    // Target values extend the brand rather than replacing it: an app may add
+    // a colour the site never uses without redeclaring the whole palette.
+    palette: [...base.palette, ...(t.palette || [])],
+    fonts: { ...base.fonts, ...(t.fonts || {}) },
+    allow: [...base.allow, ...(t.allow || [])],
+    budgetOverrides: { ...base.budgetOverrides, ...(t.budgetOverrides || {}) },
+    surfaceType: t.surfaceType || base.surfaceType,
+  };
 }
-const design = loadDesign(opt.design);
+const design = loadDesign(opt.design, opt.target);
+if (design.targetError) {
+  console.error(`mikedesign: ${design.targetError}`);
+  process.exit(2);
+}
 const surface = opt.surface || design.surfaceType || 'persuade';
 if (!RULES.budgets[surface]) {
   console.error(`mikedesign: unknown surface type "${surface}". Expected persuade, operate or read.`);
@@ -464,7 +505,7 @@ if (opt.json) {
     partial,
     surface,
     coverage,
-    design: { loaded: design.found, parseError: design.parseError || null, allow: [...allowed] },
+    design: { loaded: design.found, parseError: design.parseError || null, allow: [...allowed], target: design.target, targets: design.targets, platform: design.platform || null },
     findings,
   }, null, 2));
   process.exit(!inspectedAnything ? 2 : hard.length ? 1 : 0);
@@ -489,7 +530,12 @@ if (coverage.source.ran) line(`  source:   ${coverage.source.files} files read, 
 else line('  source:   not run');
 
 if (design.found && design.parseError) line(`  design:   loaded but config block unreadable (${design.parseError})`);
-else if (design.found) line(`  design:   ${design.palette.length} palette colours, ${allowed.size} rule overrides`);
+else if (design.found) {
+  const tgt = design.target
+    ? `target "${design.target}"${design.platform ? ` (${design.platform})` : ''} of ${design.targets.length}`
+    : 'single target';
+  line(`  design:   ${tgt}, ${design.palette.length} palette colours, ${allowed.size} rule overrides`);
+}
 else if (opt.design) line('  design:   no DESIGN.md at that path');
 
 line('');

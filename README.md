@@ -1,6 +1,6 @@
 # mikedesign
 
-A design skill for Claude Code. One skill, six commands, and a rule set that is enforced by
+A design skill for Claude Code. One skill, seven commands, and a rule set that is enforced by
 scripts rather than by hoping the model remembers.
 
 It exists because design guidance written as prose degrades. Models skim it, and under time
@@ -39,6 +39,7 @@ off within a week.
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog |
 | `copy <target>` | Cuts interface text to budget |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams |
+| `screenshots` | App Store and Play Store listing panels and app preview videos |
 
 ## The three principles
 
@@ -85,10 +86,54 @@ layer is the craft floor and the rule set, which live in the skill.
 palette there stops the linter flagging your own brand colours, so a genuinely violet brand
 declares violet and the rule goes quiet.
 
+## Several interfaces, one brand
+
+A product often has more than one interface: an app, a marketing site, maybe a dashboard. They
+share a brand and differ in platform, stack, and which components actually exist to build with.
+SwiftUI and hand-written CSS do not offer the same things.
+
+So brand sits at the top of `DESIGN.md` once, and each target overrides only what genuinely
+differs. One copy of the palette means it cannot drift between surfaces.
+
+```json
+{
+  "brand": { "palette": ["#0c1425", "#facc15"], "fonts": { "display": "Söhne" } },
+  "targets": {
+    "web": { "platform": "web", "surfaceType": "persuade" },
+    "ios": { "platform": "ios", "surfaceType": "operate", "palette": ["#1c2333"] }
+  }
+}
+```
+
+Pass `--target web`. With several targets declared and none named, the linter stops and asks
+rather than picking one. A single-interface project skips `targets` entirely.
+
+## Store screenshots
+
+`screenshots` produces App Store and Play Store listing panels. Eight locales times six panels
+times two device classes is ninety-six images, which is why the layout is a template, the words
+are data, and rendering is a loop.
+
+```bash
+node scripts/shots.mjs devices ios
+node scripts/shots.mjs render --template layout.html --data captions.json --out fastlane/screenshots
+node scripts/shots.mjs verify fastlane/screenshots --platform ios --device iphone-6.9
+```
+
+Sizes and rules live in `data/devices.json` with the date they were last verified and a source
+link, because stores change them and a stale number should be auditable rather than silently
+wrong. Rendering is exact-pixel through headless Chrome, and both render and verify fail on a
+wrong dimension or a stray alpha channel. That last one matters more than it sounds: a raw iOS
+simulator screenshot is already the correct 1320×2868 but carries an alpha channel, so uploading
+one directly gets rejected.
+
+Right-to-left locales get `dir` set automatically, and any caption much longer than the reference
+locale is flagged for a look, since German will wrap where English did not.
+
 ## Adding a tell
 
 Edit `data/rules.json`. One entry, and every command inherits it. That is the whole maintenance
-story, and it is the reason this is eleven files instead of eighty.
+story, and it is the reason this is twenty-one files instead of eighty.
 
 ## Licence
 

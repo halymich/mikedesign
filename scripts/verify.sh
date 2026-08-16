@@ -95,6 +95,58 @@ check "re-run does not duplicate"   "$(grep -c 'ASSUMED:' "$B/.mikedesign/brief-
 rm -rf "$B"
 
 echo
+echo "7. Multi-target projects resolve, and never get guessed at"
+T=$(mktemp -d)
+cat > "$T/DESIGN.md" <<'EOF'
+```json
+{
+  "brand": { "palette": ["#ff2d95"], "fonts": { "display": "Cabinet Grotesk" } },
+  "targets": {
+    "ios": { "platform": "ios", "surfaceType": "operate" },
+    "web": { "platform": "web", "surfaceType": "persuade", "palette": ["#6366f1"] }
+  }
+}
+EOF
+echo '```' >> "$T/DESIGN.md"
+node scripts/lint.mjs --rendered "$SLOP" --design "$T/DESIGN.md" >/dev/null 2>&1
+check "two targets, none named, exits 2" "$?" "2"
+node scripts/lint.mjs --rendered "$SLOP" --design "$T/DESIGN.md" --target nope >/dev/null 2>&1
+check "unknown target exits 2"           "$?" "2"
+SURF=$(node scripts/lint.mjs --rendered "$SLOP" --design "$T/DESIGN.md" --target ios --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).surface))')
+check "target sets its own surface type" "$SURF" "operate"
+# The web target declares one of the three indigo shades on the fixture. That one
+# must go quiet and the other two must not, which proves the target palette is
+# merged into the brand rather than replacing it or being ignored.
+indigo() { node scripts/lint.mjs --rendered "$SLOP" "$@" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="indigo-violet-default").length)})'; }
+check "brand alone silences none"        "$(indigo --design "$T/DESIGN.md" --target ios)" "3"
+check "target palette silences its own"  "$(indigo --design "$T/DESIGN.md" --target web)" "2"
+rm -rf "$T"
+
+echo
+echo "8. Store assets are checked against real store rules"
+node scripts/shots.mjs devices ios >/dev/null 2>&1
+check "device specs load"                "$?" "0"
+A=$(mktemp -d); mkdir -p "$A/en-US"; cp fixtures/store/screens/home.png "$A/en-US/01.png"
+node scripts/shots.mjs verify "$A" --platform ios --device iphone-6.9 >/dev/null 2>&1
+check "alpha channel is rejected"        "$?" "1"
+rm -rf "$A"
+
+CHROME="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+if [ -x "$CHROME" ]; then
+  R=$(mktemp -d)
+  (cd fixtures/store && node ../../scripts/shots.mjs render --template template.html --data captions.json --out "$R") >/dev/null 2>&1
+  check "renders every locale at exact size" "$?" "0"
+  check "wrote one file per panel per locale" "$(find "$R" -name '*.png' | wc -l | tr -d ' ')" "6"
+  node scripts/shots.mjs verify "$R" --platform ios --device iphone-6.9 >/dev/null 2>&1
+  check "rendered output passes store verify" "$?" "0"
+  rm -rf "$R"
+else
+  printf '  \033[33mSKIP\033[0m  render tests (no Chrome found; set CHROME_PATH)\n'
+fi
+
+echo
 echo "-----------------------------------------"
 printf '  %d passed, %d failed\n\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

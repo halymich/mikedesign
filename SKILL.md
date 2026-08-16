@@ -1,9 +1,9 @@
 ---
 name: mikedesign
-description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, cutting interface copy down, and producing software mockups, interface illustrations and data-flow diagrams. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work, and not for prose or article writing.
-version: 1.0.0
+description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, cutting interface copy down, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work, and not for prose or article writing.
+version: 1.1.0
 user-invocable: true
-argument-hint: "[system|new|refine|critique|copy|illustrate] [target]"
+argument-hint: "[system|new|refine|critique|copy|illustrate|screenshots] [target]"
 license: MIT
 allowed-tools:
   - Bash(node *)
@@ -69,6 +69,7 @@ move rather than inventing one silently inside another command.
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog | [commands/critique.md](commands/critique.md) |
 | `copy <target>` | Cut interface text to budget | [commands/copy.md](commands/copy.md) |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams | [commands/illustrate.md](commands/illustrate.md) |
+| `screenshots` | App Store and Play Store listing panels and app previews | [commands/screenshots.md](commands/screenshots.md) |
 
 Load exactly one command playbook, the one that owns the request. Then load
 [core/craft-floor.md](core/craft-floor.md) immediately before you write or edit any interface
@@ -105,16 +106,42 @@ The skill writes into the user's project, never into itself:
 
 ```json
 {
-  "surfaceType": "persuade",
-  "palette": ["#0c1425", "#facc15"],
-  "fonts": { "display": "Söhne", "body": "Söhne" },
-  "allow": ["glass-decoration"],
-  "budgetOverrides": {}
+  "brand": {
+    "palette": ["#0c1425", "#facc15"],
+    "fonts": { "display": "Söhne", "body": "Söhne" }
+  },
+  "targets": {
+    "web": { "platform": "web", "surfaceType": "persuade", "allow": [] },
+    "ios": { "platform": "ios", "surfaceType": "operate", "palette": ["#1c2333"] }
+  }
 }
 ```
 
 `allow` lists rule ids the brief explicitly overrode. Anything in it stops firing, so an entry
 must be traceable to something the user actually asked for.
+
+## Targets
+
+One product often has several interfaces: an iOS app, a marketing site, maybe an Android app or a
+dashboard. They share a brand and differ in platform, stack, and which components actually exist
+to build with. SwiftUI and hand-written CSS do not offer the same things, and pretending otherwise
+produces a system that cannot be built on one of them.
+
+So **brand sits at the top level once, and each target overrides only what genuinely differs.**
+One copy of the palette means it cannot drift between the app and the site. Target values extend
+the brand rather than replacing it, so an app can add a colour the site never uses without
+restating the whole palette.
+
+Pass `--target <name>` to the scripts. With several targets declared and none named, the linter
+stops and asks rather than picking one. Guessing which interface is being checked is the same
+failure as guessing a design decision.
+
+Each target's prose section in `DESIGN.md` should record its platform, its stack, **the components
+actually available**, and any deviation from brand with the reason. That component list is the
+part that stops `new` proposing something the target cannot build.
+
+Targets live inside one project. Separate repositories are separate projects and answer their own
+questions; there is no cross-repo import, deliberately.
 
 ## Verification
 

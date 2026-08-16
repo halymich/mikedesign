@@ -1,0 +1,26 @@
+{
+  "_note": "Fixture caption data. Exercises the render loop across a left-to-right locale, a locale whose copy runs much longer (German), and a right-to-left locale (Arabic). Paths are relative to this file.",
+  "platform": "ios",
+  "device": "iphone-6.9",
+  "referenceLocale": "en-US",
+  "locales": {
+    "en-US": {
+      "panels": [
+        { "caption": "Nothing leaves your phone", "sub": "Every photo stays on device", "screen": "screens/home.png" },
+        { "caption": "Find the duplicates", "sub": "Grouped automatically", "screen": "screens/home.png" }
+      ]
+    },
+    "de-DE": {
+      "panels": [
+        { "caption": "Nichts verlässt dein Telefon", "sub": "Jedes Foto bleibt auf dem Gerät gespeichert", "screen": "screens/home.png" },
+        { "caption": "Finde alle doppelten Aufnahmen sofort", "sub": "Automatisch gruppiert und sortiert", "screen": "screens/home.png" }
+      ]
+    },
+    "ar-SA": {
+      "panels": [
+        { "caption": "لا شيء يغادر هاتفك", "sub": "تبقى كل صورة على جهازك", "screen": "screens/home.png" },
+        { "caption": "اعثر على الصور المكررة", "sub": "مجمعة تلقائيا", "screen": "screens/home.png" }
+      ]
+    }
+  }
+}
