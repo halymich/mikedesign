@@ -133,6 +133,21 @@ node scripts/shots.mjs verify "$A" --platform ios --device iphone-6.9 >/dev/null
 check "alpha channel is rejected"        "$?" "1"
 rm -rf "$A"
 
+if [ -d /Library/Developer/CoreSimulator/Profiles/DeviceTypes ]; then
+  node scripts/device-mask.mjs list >/dev/null 2>&1
+  check "device types enumerate"           "$?" "0"
+  MASK=$(node scripts/device-mask.mjs "iPhone 17 Pro Max" --json 2>/dev/null)
+  CURVES=$(printf '%s' "$MASK" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log((JSON.parse(s).path.match(/C/g)||[]).length)}catch{console.log(0)}})')
+  # A real screen outline is a continuous curve of many segments. One or two
+  # would mean we grabbed a rounded rectangle and the whole point was lost.
+  if [ "${CURVES:-0}" -ge 8 ]; then ok "screen outline is a continuous curve ($CURVES segments)"
+  else bad "screen outline is a continuous curve (got $CURVES segments)"; fi
+  SCALE=$(printf '%s' "$MASK" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).scale)}catch{console.log("?")}})')
+  check "device scale read from plist"     "$SCALE" "3"
+else
+  printf '  \033[33mSKIP\033[0m  device mask tests (no Xcode simulator profiles)\n'
+fi
+
 CHROME="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 if [ -x "$CHROME" ]; then
   R=$(mktemp -d)

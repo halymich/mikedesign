@@ -3,27 +3,33 @@
 <head>
 <meta charset="utf-8">
 <!--
-  Structural scaffold for a store panel, not a house style.
+  Structural scaffold for a store panel. NOT a house style: colour, type and
+  composition all come from the project's own design system. Restyle freely.
 
   What is load-bearing and must survive any restyle:
-    - the page is exactly {{w}} x {{h}} with an OPAQUE background (stores reject alpha)
-    - nothing is positioned in absolute pixels that assumes one caption length
+
+    - the page is exactly {{w}} x {{h}} with an OPAQUE background, because
+      stores reject an alpha channel
     - dir="{{dir}}" so right-to-left locales lay out correctly
-    - the caption block grows downward, so longer translations push the device
-      rather than overflowing a fixed box
+    - the caption block grows downward, so a longer translation pushes the
+      device instead of overflowing a fixed box
+    - the device silhouette is {{devicePath}}, which is Apple's own vector
+      outline read from the installed simulator artwork. A phone corner is a
+      continuous curve built from bezier segments, not a circular arc, so no
+      border-radius value matches it and a mockup using one always looks
+      slightly wrong. Do not replace this with border-radius.
 
-  Everything else (colour, type, the shape of the device frame, whether there is
-  a frame at all) comes from the project's own design system. Restyle freely.
+  Placeholders: {{caption}} {{caption_raw}} {{sub}} {{screen}} {{index}} {{total}}
+                {{locale}} {{dir}} {{w}} {{h}}
+                {{devicePath}} {{deviceViewBox}} {{deviceRadius}} {{screenW}} {{screenH}}
+                {{islandW}} {{islandH}} {{islandTop}}
 
-  Placeholders: {{caption}} {{sub}} {{screen}} {{index}} {{total}} {{locale}} {{dir}} {{w}} {{h}}
+  Use {{caption}} for plain text, or {{caption_raw}} when the caption carries
+  markup such as an <em> around the word you want in the accent colour.
 -->
 <style>
   * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    width: {{w}}px; height: {{h}}px;
-    overflow: hidden;
-  }
+  html, body { margin: 0; padding: 0; width: {{w}}px; height: {{h}}px; overflow: hidden; }
   body {
     /* Opaque by construction. A transparent body is the single most common
        reason a store rejects an otherwise correct screenshot. */
@@ -37,25 +43,26 @@
 
   .caption-zone {
     width: 100%;
-    padding: 150px 110px 0;
+    padding: 140px 96px 0;
     text-align: center;
-    /* No fixed height: a longer translation grows this block instead of
+    /* No fixed height: a longer translation grows this block rather than
        spilling out of it. */
   }
   h1 {
     margin: 0;
-    font-size: 118px;
-    line-height: 1.06;
-    letter-spacing: -0.03em;
+    font-size: 120px;
+    line-height: 1.02;
+    letter-spacing: -0.032em;
     font-weight: 800;
     text-wrap: balance;
   }
+  h1 em { font-style: normal; opacity: .62; }
   .sub {
     margin: 34px 0 0;
-    font-size: 52px;
-    line-height: 1.3;
+    font-size: 46px;
+    line-height: 1.28;
     font-weight: 500;
-    opacity: .72;
+    opacity: .68;
     text-wrap: balance;
   }
 
@@ -65,31 +72,41 @@
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    padding: 90px 0 0;
+    padding-top: 62px;
     min-height: 0;
   }
-  .device {
-    width: 940px;
-    border-radius: 78px;
-    padding: 14px;
-    background: #23262f;
-    box-shadow: 0 40px 90px rgba(0, 0, 0, .55);
-    overflow: hidden;
-  }
-  .device img {
+  .phone {
+    width: 1000px;
+    height: auto;
     display: block;
-    width: 100%;
-    border-radius: 64px;
+    filter: drop-shadow(0 46px 90px rgba(0, 0, 0, .55));
   }
 </style>
 </head>
 <body>
   <div class="caption-zone">
-    <h1>{{caption}}</h1>
+    <h1>{{caption_raw}}</h1>
     <p class="sub">{{sub}}</p>
   </div>
+
   <div class="device-zone">
-    <div class="device"><img src="{{screen}}" alt=""></div>
+    <svg class="phone" viewBox="{{deviceViewBox}}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!--
+          The screen is the same outline inset by the bezel width. x and y are
+          scaled separately on purpose: a uniform scale would make the top and
+          bottom bezels roughly twice the thickness of the sides, because the
+          device is about twice as tall as it is wide.
+        -->
+        <clipPath id="screen" clipPathUnits="userSpaceOnUse">
+          <path d="{{devicePath}}" transform="translate(18,18) scale(0.97273, 0.98745)"/>
+        </clipPath>
+      </defs>
+      <path d="{{devicePath}}" fill="#26262c"/>
+      <path d="{{devicePath}}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="5"/>
+      <image href="{{screen}}" x="0" y="0" width="{{screenW}}" height="{{screenH}}"
+             clip-path="url(#screen)" preserveAspectRatio="xMidYMid slice"/>
+    </svg>
   </div>
 </body>
 </html>

@@ -23,6 +23,9 @@
         "landscape": [2868, 1320],
         "required": true,
         "simulator": "iPhone 17 Pro Max",
+        "cornerExtentRatio": 0.1936,
+        "cornerRadiusFallbackRatio": 0.129,
+        "dynamicIsland": { "wRatio": 0.284, "hRatio": 0.0387, "topRatio": 0.0115, "_note": "A simulator capture already contains the island, drawn black in the status bar. Only draw one when the source screen does not have it." },
         "verified": true
       },
       "ipad-13": {
@@ -32,6 +35,8 @@
         "landscape": [2752, 2064],
         "required": "only if the app supports iPad",
         "simulator": "iPad Pro 13-inch (M5)",
+        "cornerExtentRatio": 0.0373,
+        "cornerRadiusFallbackRatio": 0.025,
         "verified": true
       }
     },
@@ -96,6 +101,8 @@
   },
 
   "rtlLocales": ["ar", "he", "fa", "ur", "yi", "dv", "ps"],
+
+  "_cornerNote": "cornerExtentRatio is how far the display's continuous corner curve runs before the straight edge starts, as a fraction of screen width. It is NOT a border-radius: an iPhone corner is a continuous curve built from bezier segments, and no circular radius matches it. Where Xcode is present, scripts/device-mask.mjs reads the exact outline from Apple's own artwork. cornerRadiusFallbackRatio is the closest circular approximation, for machines without Xcode, and should be reported as approximate.",
 
   "fastlane": {
     "screenshotDir": "fastlane/screenshots",

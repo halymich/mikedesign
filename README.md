@@ -130,10 +130,29 @@ one directly gets rejected.
 Right-to-left locales get `dir` set automatically, and any caption much longer than the reference
 locale is flagged for a look, since German will wrap where English did not.
 
+Panels are branded from the project: `DESIGN.md` when it exists, otherwise the app's own asset
+catalog or theme. A store listing rendered in a generic style is an advert for nothing.
+
+### Device frames are measured, not eyeballed
+
+A phone screen corner is a continuous curve built from bezier segments, not a circular arc. No
+`border-radius` value matches it, which is why most hand-built mockups look subtly wrong next to
+a real device.
+
+```bash
+node scripts/device-mask.mjs "iPhone 17 Pro Max"
+# corner extent: 255.5px = 85.2pt (ratio 0.1936 of width), 24 curves
+```
+
+That reads the true outline out of the vector artwork Xcode already ships inside each
+`.simdevicetype` bundle, at 1:1 pixel scale, and hands it to the template as an SVG path. Without
+Xcode it falls back to the closest circular radius and **says so** in the render output, rather
+than presenting an approximation as exact.
+
 ## Adding a tell
 
 Edit `data/rules.json`. One entry, and every command inherits it. That is the whole maintenance
-story, and it is the reason this is twenty-one files instead of eighty.
+story, and it is the reason this is twenty-three files instead of eighty.
 
 ## Licence
 

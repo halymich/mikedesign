@@ -84,7 +84,55 @@ previews that are mostly title cards or marketing animation.
 Uploading previews through `deliver` is unreliable in practice. Expect to upload them through
 App Store Connect or Transporter, and say so rather than promising an automated path.
 
-## 5. Three layouts, then signoff
+## 5. Brand it from the app it belongs to
+
+These panels are the product's own advertising, so they must look like the product. Never render
+them in a generic style.
+
+Take the brand from `.mikedesign/DESIGN.md` when the project has one. When it does not, the app
+itself is the source of truth and you should read it rather than ask:
+
+- **iOS:** the asset catalog. `Assets.xcassets/**/*.colorset/Contents.json` holds real accent,
+  background and semantic colours with their light and dark variants, and `AppIcon.appiconset`
+  holds the mark.
+- **Android:** `res/values/colors.xml` and the theme.
+- **Web or cross-platform:** the token file, theme object, or stylesheet the app actually ships.
+
+Show the user what you extracted and confirm it before rendering. If the app's accent happens to
+sit in a banned range, that is fine: it is the declared brand, so record it in the `DESIGN.md`
+palette and the rule goes quiet. That is the override working as designed, not a reason to change
+the brand.
+
+Match the existing listing too, if there is one. A new set that looks nothing like the panels
+currently on the store makes the app look like it changed hands.
+
+## 6. Device frames
+
+Do not draw a device with `border-radius`. A phone screen corner is a continuous curve assembled
+from bezier segments, and no circular radius matches it. Even a close radius reads as subtly wrong
+next to a real device, which is exactly the kind of tell this skill exists to prevent.
+
+```
+node $S/device-mask.mjs list
+node $S/device-mask.mjs "iPhone 17 Pro Max"
+```
+
+That reads the true outline out of the vector artwork Xcode already ships in the
+`.simdevicetype` bundle, at 1:1 pixel scale. `shots.mjs` calls it automatically and hands the
+template `{{devicePath}}` and `{{deviceViewBox}}`, so a template just uses the path.
+
+The bezel is the same outline inset, not a second rounded rectangle. Scale x and y separately so
+the bezel stays a uniform thickness, since a uniform scale makes the top and bottom roughly twice
+the sides on a phone-shaped rectangle.
+
+Two things to check before you draw anything on top:
+
+- A simulator capture **already contains the Dynamic Island**, drawn black in the status bar. Only
+  draw one when the source screen lacks it, or you will get two.
+- Without Xcode the geometry falls back to a circular approximation. `render` says so in its
+  output, and the report must repeat that rather than implying the frame is exact.
+
+## 7. Three layouts, then signoff
 
 Do not render 96 images in a direction the user has not seen. Build three genuinely different
 layouts, render each with real copy and a real screen, and have them pick.
@@ -105,7 +153,7 @@ system: the palette, the display face, the illustration style if one is recorded
 
 Record the chosen layout in `DESIGN.md` so the next release matches without re-litigating it.
 
-## 6. Write the captions
+## 8. Write the captions
 
 Caption budget is 6 words, and it gates. These are billboards read in about a second.
 
@@ -116,7 +164,7 @@ Caption budget is 6 words, and it gates. These are billboards read in about a se
 - A sub-caption is optional and usually unnecessary. If the caption needs a sub-caption to make
   sense, the caption is wrong.
 
-## 7. Translate
+## 9. Translate
 
 Translate into every locale, matching the tone of any store metadata the project already has.
 **Say clearly in the report that translations are machine-generated and have not had a native
@@ -131,7 +179,7 @@ Build the layout so a long translation grows the caption block and pushes the re
 caption box with hidden overflow silently clips a language you do not read, which is the worst
 possible failure.
 
-## 8. Render and verify
+## 10. Render and verify
 
 ```
 node $S/shots.mjs render --template <layout.html> --data <captions.json> --out fastlane/screenshots
@@ -147,7 +195,7 @@ Then look at the images. Verification proves they are uploadable, not that they 
 Check a sample at thumbnail size, since that is how they will actually be seen, and check every
 locale you cannot read for text that has collided or clipped.
 
-## 9. Upload
+## 11. Upload
 
 Output goes to `fastlane/screenshots/<locale>/`, in sorted filename order, which is the order the
 listing shows. `deliver` uploads from there.

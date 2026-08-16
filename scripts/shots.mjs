@@ -94,6 +94,34 @@ function arg(name, fallback = null) {
   return i > -1 ? process.argv[i + 1] : fallback;
 }
 
+/*
+ * Device frame geometry.
+ *
+ * A phone screen corner is a continuous curve, not a circular arc, so a CSS
+ * border-radius never quite matches and looks subtly wrong beside the real
+ * thing. Where Xcode is installed, read the true outline out of Apple's own
+ * device artwork. Everywhere else fall back to the closest circular radius and
+ * say so, rather than shipping an approximation that claims to be exact.
+ */
+function deviceGeometry(spec) {
+  const fallback = {
+    exact: false,
+    path: '',
+    viewBox: `0 0 ${spec.w} ${spec.h}`,
+    radiusPx: Math.round(spec.w * (spec.cornerRadiusFallbackRatio || 0.12)),
+  };
+  if (!spec.simulator) return fallback;
+  const r = spawnSync(process.execPath, [join(HERE, 'device-mask.mjs'), spec.simulator, '--json'], {
+    encoding: 'utf8', timeout: 20_000,
+  });
+  if (r.status !== 0 || !r.stdout) return fallback;
+  try {
+    const m = JSON.parse(r.stdout);
+    if (!m.path) return fallback;
+    return { exact: true, path: m.path, viewBox: m.viewBox, radiusPx: fallback.radiusPx, w: m.w, h: m.h };
+  } catch { return fallback; }
+}
+
 /* ---------- devices ---------- */
 
 if (process.argv[2] === 'devices') {
@@ -148,8 +176,14 @@ if (process.argv[2] === 'render') {
   const ref = data.referenceLocale || locales[0];
   const refPanels = (data.locales[ref] || {}).panels || [];
 
+  const geo = deviceGeometry(spec);
+  const island = spec.dynamicIsland || null;
+
   console.log(`\nrendering ${platform} ${device} at ${spec.w}x${spec.h}`);
   console.log(`  renderer: ${chrome}`);
+  console.log(`  frame:    ${geo.exact
+    ? `exact outline from ${spec.simulator} device artwork`
+    : `APPROXIMATE (${geo.radiusPx}px circular radius; no device artwork available)`}`);
   console.log(`  locales:  ${locales.join(', ')}${only ? `  (only ${only})` : ''}\n`);
 
   const tmpDir = join(dirname(resolve(templatePath)), '.shots-tmp');
@@ -193,6 +227,15 @@ if (process.argv[2] === 'render') {
         locale, dir,
         w: String(spec.w),
         h: String(spec.h),
+        // Device frame geometry, so a template never has to guess a corner.
+        devicePath: geo.path,
+        deviceViewBox: geo.viewBox,
+        deviceRadius: String(geo.radiusPx),
+        screenW: String(geo.w || spec.w),
+        screenH: String(geo.h || spec.h),
+        islandW: island ? String(Math.round(spec.w * island.wRatio)) : '0',
+        islandH: island ? String(Math.round(spec.h * island.hRatio)) : '0',
+        islandTop: island ? String(Math.round(spec.h * island.topRatio)) : '0',
       };
       // Raw variants for cases where the template needs unescaped markup.
       vars['caption_raw'] = String(panel.caption ?? '');
