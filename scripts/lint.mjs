@@ -340,6 +340,11 @@ function runRendered(data) {
       }
     }
 
+    else if (t.type === 'page-color-exact') {
+      const bg = String(data.pageBackground || '').trim();
+      if (t.values.includes(bg)) report(rule, 'document body', `background ${bg}`);
+    }
+
     else if (t.type === 'page-luminance') {
       const c = parseColor(data.pageBackground);
       if (c && c.a > 0 && luminance(c) < t.below) {

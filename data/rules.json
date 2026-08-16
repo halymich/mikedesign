@@ -127,6 +127,27 @@
     },
 
     {
+      "id": "pure-ground",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Pure #ffffff or #000000 as the page ground",
+      "why": "Measured across a set of well-regarded software marketing sites, not one uses either. They sit on warm off-whites and blue-cast near-blacks (#FFFFEB, #FCF9F8, #05080F). Pure values are the untouched default, and they read as one.",
+      "fix": "Warm or cool the ground a few points toward the brand. It costs nothing and it is the difference between a chosen ground and no ground.",
+      "test": { "type": "page-color-exact", "values": ["rgb(255, 255, 255)", "rgb(0, 0, 0)"] }
+    },
+    {
+      "id": "layout-animating-transition",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Transition on a property that forces layout",
+      "why": "Animating width, height, top, left, margin or padding re-runs layout every frame and drops frames on cheap hardware. The reference sites animate almost nothing else but opacity and transform: 656 of 831 transition declarations on one, 319 of 305 on another.",
+      "fix": "Move it to transform and opacity. Scale instead of width, translate instead of top.",
+      "test": {
+        "type": "computed",
+        "all": [{ "prop": "transitionProperty", "match": "\\b(width|height|top|left|right|bottom|margin|padding)\\b" }]
+      }
+    },
+    {
       "id": "identical-card-row",
       "severity": "advisory",
       "scope": "rendered",

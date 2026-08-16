@@ -23,10 +23,16 @@ across the surface, because two light sources on one page reads as an accident.
 below it, so it binds to what it introduces. Read the computed values rather than trusting the
 scale you meant to use.
 
-**Type.** Body measure 65 to 75 characters. An obvious scale, with steps large enough to read as
-deliberate; three sizes that differ by 2px is three accidents. Tracking tightens as size grows.
-Run the real copy at every breakpoint and fix what overflows, rather than the placeholder that
-happened to fit.
+**Type.** Measure depends on what the surface is for: **45 to 60 characters on `persuade`**, 65 to
+75 on `read`. Marketing copy is scanned, and a short line scans faster; long-form reading wants
+the wider measure. Measured on sites that do this well, marketing body copy runs 48 to 55ch.
+
+An obvious scale, with steps large enough to read as deliberate; three sizes that differ by 2px
+is three accidents. Tracking tightens as size grows and goes negative on display, around −0.02 to
+−0.03em. Display leading goes below 1, around 0.85 to 0.95; display type set at body leading just
+looks like body copy that got bigger. Weight is a decision, not a default: a serif at regular
+weight can carry a page more convincingly than a sans at 800. Run the real copy at every
+breakpoint and fix what overflows, rather than the placeholder that happened to fit.
 
 **Motion.** One authored moment that belongs to this product, not an entrance animation stapled
 to every section. Ease out from an already-visible default so nothing important depends on

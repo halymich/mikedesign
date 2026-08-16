@@ -32,6 +32,7 @@
     ['borderTopColor', 'border-top-color'],
     ['borderLeftWidth', 'border-left-width'],
     ['fill', 'fill'],
+    ['transitionProperty', 'transition-property'],
   ];
 
   const DEFAULTISH = {
@@ -45,6 +46,7 @@
     borderRadius: ['0px'],
     borderLeftWidth: ['0px'],
     fill: ['none', 'rgb(0, 0, 0)'],
+    transitionProperty: ['all', 'none'],
   };
 
   const SKIP_TAGS = new Set([

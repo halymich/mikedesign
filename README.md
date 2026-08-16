@@ -76,6 +76,15 @@ node scripts/lint.mjs --rendered collected.json --source src --design .mikedesig
 
 Exit 0 clean, 1 hard findings, 2 no verdict possible.
 
+## Calibrated against real sites, by measurement
+
+`platform/web.md` carries what good software marketing sites actually do, taken by reading their
+computed styles rather than by describing screenshots. Some of it contradicts the usual advice:
+none of the reference sites uses pure white or pure black, marketing body copy runs 45 to 60
+characters rather than 65 to 75, display leading goes below 1, and motion is almost entirely
+`opacity` and `transform` (656 of 831 transition declarations on one site). Two of those became
+lint rules.
+
 ## Per project, not global
 
 Each project gets its own `.mikedesign/DESIGN.md`. There is no shared house style, on purpose:

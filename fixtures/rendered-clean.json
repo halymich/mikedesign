@@ -38,7 +38,8 @@
         "filter": "none",
         "borderTopColor": "rgb(12, 20, 37)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "P",
@@ -73,7 +74,8 @@
         "filter": "none",
         "borderTopColor": "rgb(74, 85, 104)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H1",
       "nextTag": "A",
@@ -108,7 +110,8 @@
         "filter": "none",
         "borderTopColor": "rgb(248, 247, 244)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "P",
       "nextTag": "HR",
@@ -143,7 +146,8 @@
         "filter": "none",
         "borderTopColor": "rgb(12, 20, 37)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "HR",
       "nextTag": "P",
@@ -178,7 +182,8 @@
         "filter": "none",
         "borderTopColor": "rgb(12, 20, 37)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H2",
       "nextTag": "UL",
@@ -213,7 +218,8 @@
         "filter": "none",
         "borderTopColor": "rgb(74, 85, 104)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "LI",
@@ -248,7 +254,8 @@
         "filter": "none",
         "borderTopColor": "rgb(74, 85, 104)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "LI",
       "nextTag": "LI",
@@ -283,7 +290,8 @@
         "filter": "none",
         "borderTopColor": "rgb(74, 85, 104)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "LI",
       "nextTag": "",
@@ -318,7 +326,8 @@
         "filter": "none",
         "borderTopColor": "rgb(12, 20, 37)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "HR",
       "nextTag": "P",
@@ -353,7 +362,8 @@
         "filter": "none",
         "borderTopColor": "rgb(12, 20, 37)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H2",
       "nextTag": "",

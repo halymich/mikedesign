@@ -7,7 +7,7 @@
     "w": 0,
     "h": 0
   },
-  "pageBackground": "rgb(11, 11, 18)",
+  "pageBackground": "rgb(0, 0, 0)",
   "pageColor": "rgb(229, 231, 235)",
   "coverage": {
     "scanned": 22,
@@ -38,7 +38,8 @@
         "filter": "blur(80px)",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "DIV",
@@ -73,7 +74,8 @@
         "filter": "none",
         "borderTopColor": "rgb(165, 180, 252)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "H1",
@@ -108,7 +110,8 @@
         "filter": "none",
         "borderTopColor": "rgba(0, 0, 0, 0)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "P",
       "nextTag": "P",
@@ -143,7 +146,8 @@
         "filter": "none",
         "borderTopColor": "rgb(156, 163, 175)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H1",
       "nextTag": "A",
@@ -178,7 +182,8 @@
         "filter": "none",
         "borderTopColor": "rgb(255, 255, 255)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "P",
       "nextTag": "DIV",
@@ -213,7 +218,8 @@
         "filter": "none",
         "borderTopColor": "rgba(255, 255, 255, 0.1)",
         "borderLeftWidth": "1px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "width, box-shadow"
       },
       "prevTag": "",
       "nextTag": "DIV",
@@ -248,7 +254,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "H3",
@@ -283,7 +290,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "DIV",
       "nextTag": "P",
@@ -318,7 +326,8 @@
         "filter": "none",
         "borderTopColor": "rgb(156, 163, 175)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H3",
       "nextTag": "",
@@ -353,7 +362,8 @@
         "filter": "none",
         "borderTopColor": "rgba(255, 255, 255, 0.1)",
         "borderLeftWidth": "1px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "width, box-shadow"
       },
       "prevTag": "DIV",
       "nextTag": "DIV",
@@ -388,7 +398,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "H3",
@@ -423,7 +434,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "DIV",
       "nextTag": "P",
@@ -458,7 +470,8 @@
         "filter": "none",
         "borderTopColor": "rgb(156, 163, 175)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H3",
       "nextTag": "",
@@ -493,7 +506,8 @@
         "filter": "none",
         "borderTopColor": "rgba(255, 255, 255, 0.1)",
         "borderLeftWidth": "1px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "width, box-shadow"
       },
       "prevTag": "DIV",
       "nextTag": "",
@@ -528,7 +542,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "",
       "nextTag": "H3",
@@ -563,7 +578,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "DIV",
       "nextTag": "P",
@@ -598,7 +614,8 @@
         "filter": "none",
         "borderTopColor": "rgb(156, 163, 175)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "H3",
       "nextTag": "",
@@ -633,7 +650,8 @@
         "filter": "none",
         "borderTopColor": "rgb(129, 140, 248)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "DIV",
       "nextTag": "P",
@@ -668,7 +686,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "P",
       "nextTag": "P",
@@ -703,7 +722,8 @@
         "filter": "none",
         "borderTopColor": "rgb(229, 231, 235)",
         "borderLeftWidth": "0px",
-        "fill": "rgb(0, 0, 0)"
+        "fill": "rgb(0, 0, 0)",
+        "transitionProperty": "all"
       },
       "prevTag": "P",
       "nextTag": "",

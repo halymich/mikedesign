@@ -12,7 +12,7 @@
 <style>
   body {
     margin: 0;
-    background: #0b0b12;                      /* dark-by-reflex */
+    background: #000;                          /* dark-by-reflex + pure-ground */
     color: #e5e7eb;
     font-family: Inter, system-ui, sans-serif;
   }
@@ -67,6 +67,8 @@
     border: 1px solid rgba(255,255,255,.1);
   }
   .card .ico { font-size: 32px; }              /* emoji-as-icon */
+  .card:hover { width: 140px; }                /* layout-animating-transition */
+  .card { transition: width .3s ease, box-shadow .3s ease; }
   .card h3 { margin: 12px 0 8px; font-size: 18px; }
   .card p { margin: 0; color: #9ca3af; font-size: 14px; }
 
