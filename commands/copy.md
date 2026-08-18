@@ -119,9 +119,11 @@ Re-render and re-lint so budget findings are measured on the built result, not o
 hope shipped. For articles and emails, lint the markdown directly with `--source`; the text rules
 run there and cover it.
 
-Two known limits, and say them in the report rather than implying coverage you do not have.
-Fenced code blocks in markdown are not stripped, so a code sample can trip a text rule. And the
-format budgets in step 3 were applied by you, not by a script.
+Fenced code blocks in markdown are skipped, so a code sample cannot trip a text rule on its
+author's behalf. Inline code spans are not, which is the remaining gap and a small one.
+
+One limit worth stating in the report rather than implying coverage you do not have: the format
+budgets in step 3 were applied by you, not by a script. Nothing checked them but you.
 
 Report what was cut, the word counts before and after, and anything left long on purpose with the
 reason.
