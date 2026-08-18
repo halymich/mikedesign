@@ -158,6 +158,11 @@ Three traps, all of which have already been hit:
 Do not render 96 images in a direction the user has not seen. Build three genuinely different
 layouts, render each with real copy and a real screen, and have them pick.
 
+Send the three as rendered images rather than a live page. Store panels are fixed-size assets and
+a browser that reflows them is showing something the store will never display, so this is the one
+place in the skill where the image is the honest medium and a URL is not.
+[../core/showing.md](../core/showing.md) covers why, and how to gate on it.
+
 The three families worth offering, unless the brief points elsewhere:
 
 - **Flat panel.** Caption on top, device below, solid or gradient ground. Reads clearly at

@@ -460,9 +460,26 @@ function runSource(paths) {
     let content;
     try { content = readFileSync(file, 'utf8'); } catch { coverage.source.skipped++; continue; }
     const lines = content.split('\n');
-    for (const rule of textRules) {
-      const re = new RegExp(rule.test.pattern, rule.test.flags || '');
+
+    // A fenced code block in markdown is not prose, and its contents are not this
+    // author's voice. Linting it reports the sample's wording as the writer's own,
+    // which is wrong often enough to teach people to ignore the whole rule.
+    const fenced = new Set();
+    if (extname(file) === '.md' || extname(file) === '.mdx') {
+      let open = false;
       lines.forEach((line, i) => {
+        if (/^\s*(```|~~~)/.test(line)) { open = !open; fenced.add(i); return; }
+        if (open) fenced.add(i);
+      });
+    }
+
+    for (const rule of textRules) {
+      // Rendered text arrives with its role already known, so a rule can match bare prose.
+      // Raw source does not, so a role-specific rule declares sourcePattern to find the role
+      // in the markup itself. Without it a headline rule fires on every paragraph.
+      const re = new RegExp(rule.test.sourcePattern || rule.test.pattern, rule.test.flags || '');
+      lines.forEach((line, i) => {
+        if (fenced.has(i)) return;
         const m = line.match(re);
         if (m) report(rule, `${file}:${i + 1}`, m[0].trim(), line);
       });

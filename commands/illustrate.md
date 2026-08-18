@@ -101,3 +101,12 @@ and presenting it as the product.
 Render it, view it at desktop and mobile, tab through any interactive parts, and check it in both
 themes if the project has two. Lint the page it lives on. Confirm no fabricated data survived,
 and report which parts are real and which are illustrative.
+
+## 8. Show the finished drawing
+
+Agreeing the content was not agreeing the drawing. An illustration is the one output in this skill
+where a description and the artifact have almost no relationship: "a monoline diagram of the sync
+flow" is true of a good one and a bad one equally.
+
+Publish it where the user can open it at full size, in the page it belongs to if that page exists.
+If it moves, they need to watch it move. [../core/showing.md](../core/showing.md) has the ladder.

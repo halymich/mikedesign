@@ -1,14 +1,33 @@
 {
-  "version": 1,
+  "version": "1.5.0",
   "note": "Single source of truth for mikedesign. Adding a tell here makes every command inherit it. Severity 'hard' gates a result; 'advisory' is reported for judgment and never blocks. Scope 'rendered' needs computed styles collected from a real browser; 'text' runs on visible text from either source.",
-
   "budgets": {
     "_note": "Word ceilings by surface type. 'read' surfaces (docs, legal, articles) deliberately have no body ceiling. Override per project in the DESIGN.md config block.",
-    "persuade": { "headline": 8, "subhead": 20, "body": 40, "control": 3, "item": 15, "caption": 6 },
-    "operate":  { "headline": 6, "subhead": 12, "body": 25, "control": 3, "item": 12, "caption": 6 },
-    "read":     { "headline": 12, "subhead": 30, "body": null, "control": 3, "item": 40, "caption": 6 }
+    "persuade": {
+      "headline": 8,
+      "subhead": 20,
+      "body": 40,
+      "control": 3,
+      "item": 15,
+      "caption": 6
+    },
+    "operate": {
+      "headline": 6,
+      "subhead": 12,
+      "body": 25,
+      "control": 3,
+      "item": 12,
+      "caption": 6
+    },
+    "read": {
+      "headline": 12,
+      "subhead": 30,
+      "body": null,
+      "control": 3,
+      "item": 40,
+      "caption": 6
+    }
   },
-
   "budgetSeverity": {
     "_note": "Overflow on the compressible roles gates. Prose is reported, because a legitimate long paragraph is a judgment call.",
     "headline": "hard",
@@ -18,7 +37,6 @@
     "item": "advisory",
     "body": "advisory"
   },
-
   "rules": [
     {
       "id": "indigo-violet-default",
@@ -29,10 +47,21 @@
       "fix": "Pick a hue from the brief, the product, or the use scene. If the brand really is violet, declare it in the DESIGN.md palette and this stops firing.",
       "test": {
         "type": "color-band",
-        "props": ["color", "backgroundColor", "borderTopColor", "fill"],
-        "hue": [225, 290],
+        "props": [
+          "color",
+          "backgroundColor",
+          "borderTopColor",
+          "fill"
+        ],
+        "hue": [
+          225,
+          290
+        ],
         "satMin": 0.35,
-        "lightRange": [0.3, 0.85]
+        "lightRange": [
+          0.3,
+          0.85
+        ]
       }
     },
     {
@@ -45,8 +74,14 @@
       "test": {
         "type": "computed",
         "all": [
-          { "prop": "webkitBackgroundClip", "match": "text" },
-          { "prop": "backgroundImage", "match": "gradient" }
+          {
+            "prop": "webkitBackgroundClip",
+            "match": "text"
+          },
+          {
+            "prop": "backgroundImage",
+            "match": "gradient"
+          }
         ]
       }
     },
@@ -57,7 +92,10 @@
       "title": "Eyebrow / kicker label above a heading",
       "why": "A small uppercase label announcing the section the heading is about to name. Pure filler; the heading already carries its own weight.",
       "fix": "Delete it. If it holds real information, fold that into the heading.",
-      "test": { "type": "eyebrow", "maxWords": 4 }
+      "test": {
+        "type": "eyebrow",
+        "maxWords": 4
+      }
     },
     {
       "id": "emoji-as-icon",
@@ -66,7 +104,9 @@
       "title": "Emoji standing in for an icon system",
       "why": "Emoji render differently on every platform, cannot inherit stroke weight or colour, and signal that no icon decision was made.",
       "fix": "Draw the icon, or use one real library at a consistent stroke and weight.",
-      "test": { "type": "emoji-icon" }
+      "test": {
+        "type": "emoji-icon"
+      }
     },
     {
       "id": "halo-shadow",
@@ -75,7 +115,11 @@
       "title": "Zero-offset glow used as depth",
       "why": "A shadow with no offset is a coloured halo, not depth. Real depth implies a light source, so it has direction.",
       "fix": "Give the shadow an offset and a soft blur, or remove it.",
-      "test": { "type": "shadow", "mode": "zero-offset", "minBlur": 8 }
+      "test": {
+        "type": "shadow",
+        "mode": "zero-offset",
+        "minBlur": 8
+      }
     },
     {
       "id": "default-display-font",
@@ -86,8 +130,22 @@
       "fix": "Source and self-host a face whose character matches the brief, then declare it in the DESIGN.md fonts block.",
       "test": {
         "type": "font-default",
-        "selectors": ["h1", "h2", ".display", "[data-role=headline]"],
-        "families": ["inter", "system-ui", "-apple-system", "blinkmacsystemfont", "segoe ui", "roboto", "helvetica neue", "arial"]
+        "selectors": [
+          "h1",
+          "h2",
+          ".display",
+          "[data-role=headline]"
+        ],
+        "families": [
+          "inter",
+          "system-ui",
+          "-apple-system",
+          "blinkmacsystemfont",
+          "segoe ui",
+          "roboto",
+          "helvetica neue",
+          "arial"
+        ]
       }
     },
     {
@@ -123,9 +181,12 @@
       "title": "Em dash in interface copy",
       "why": "One of the most reliable machine-written markers, and against house style.",
       "fix": "Restructure with commas, colons, parentheses, or two sentences.",
-      "test": { "type": "text-pattern", "pattern": "\\u2014", "flags": "g" }
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\u2014",
+        "flags": "g"
+      }
     },
-
     {
       "id": "pure-ground",
       "severity": "advisory",
@@ -133,7 +194,13 @@
       "title": "Pure #ffffff or #000000 as the page ground",
       "why": "Measured across a set of well-regarded software marketing sites, not one uses either. They sit on warm off-whites and blue-cast near-blacks (#FFFFEB, #FCF9F8, #05080F). Pure values are the untouched default, and they read as one.",
       "fix": "Warm or cool the ground a few points toward the brand. It costs nothing and it is the difference between a chosen ground and no ground.",
-      "test": { "type": "page-color-exact", "values": ["rgb(255, 255, 255)", "rgb(0, 0, 0)"] }
+      "test": {
+        "type": "page-color-exact",
+        "values": [
+          "rgb(255, 255, 255)",
+          "rgb(0, 0, 0)"
+        ]
+      }
     },
     {
       "id": "layout-animating-transition",
@@ -144,7 +211,12 @@
       "fix": "Move it to transform and opacity. Scale instead of width, translate instead of top.",
       "test": {
         "type": "computed",
-        "all": [{ "prop": "transitionProperty", "match": "\\b(width|height|top|left|right|bottom|margin|padding)\\b" }]
+        "all": [
+          {
+            "prop": "transitionProperty",
+            "match": "\\b(width|height|top|left|right|bottom|margin|padding)\\b"
+          }
+        ]
       }
     },
     {
@@ -154,7 +226,11 @@
       "title": "Row of near-identical icon + heading + text cards",
       "why": "The default page scaffold when no structure was chosen. Cards are the lazy container.",
       "fix": "Let the content decide the structure. Different things should look different.",
-      "test": { "type": "repeat-structure", "minRepeats": 3, "minSimilarity": 0.9 }
+      "test": {
+        "type": "repeat-structure",
+        "minRepeats": 3,
+        "minSimilarity": 0.9
+      }
     },
     {
       "id": "glass-decoration",
@@ -163,7 +239,15 @@
       "title": "Backdrop blur used as decoration",
       "why": "Glass is a specific effect for layering over content. Applied to a static panel it is costume.",
       "fix": "Keep it only where something actually shows through and moves behind it.",
-      "test": { "type": "computed", "all": [{ "prop": "backdropFilter", "match": "blur" }] }
+      "test": {
+        "type": "computed",
+        "all": [
+          {
+            "prop": "backdropFilter",
+            "match": "blur"
+          }
+        ]
+      }
     },
     {
       "id": "gradient-orb",
@@ -172,7 +256,11 @@
       "title": "Blurred gradient orb behind the hero",
       "why": "Atmosphere applied because the hero felt empty, not because the design called for it.",
       "fix": "Fill the hero with the product, the proof, or nothing.",
-      "test": { "type": "orb", "minSize": 200, "minBlur": 30 }
+      "test": {
+        "type": "orb",
+        "minSize": 200,
+        "minBlur": 30
+      }
     },
     {
       "id": "section-numbering",
@@ -181,7 +269,11 @@
       "title": "Decorative 01 / 02 / 03 section numbers",
       "why": "Sequence implied where none exists.",
       "fix": "Keep the numbers only when the reader must follow them in order.",
-      "test": { "type": "text-pattern", "pattern": "^\\s*0[1-9]\\s*$", "flags": "" }
+      "test": {
+        "type": "text-pattern",
+        "pattern": "^\\s*0[1-9]\\s*$",
+        "flags": ""
+      }
     },
     {
       "id": "filler-copy",
@@ -203,7 +295,10 @@
       "title": "Dark theme as a default reflex",
       "why": "Dark is a decision from the use scene (who, where, ambient light), not a category habit. Chosen by reflex it is the most common single tell.",
       "fix": "Justify it from the use scene in DESIGN.md, or start light.",
-      "test": { "type": "page-luminance", "below": 0.2 }
+      "test": {
+        "type": "page-luminance",
+        "below": 0.2
+      }
     },
     {
       "id": "monospace-costume",
@@ -212,19 +307,152 @@
       "title": "Monospace used to signal 'technical'",
       "why": "Monospace is for code, data, and measurement. Elsewhere it is a costume.",
       "fix": "Use the body face, and let the content carry the credibility.",
-      "test": { "type": "mono-costume" }
+      "test": {
+        "type": "mono-costume"
+      }
     },
     {
       "id": "rule-of-three-headline",
       "severity": "advisory",
       "scope": "text",
       "title": "Rule-of-three phrasing",
-      "why": "'Faster, simpler, and smarter.' A rhythm models reach for when there is nothing specific to say.",
+      "why": "'Faster, simpler, and smarter.' A rhythm models reach for when there is nothing specific to say. Rendered text is matched anywhere, because the role is already known. Source text is matched only inside a heading, because a mid-paragraph list of three real things is not this tell.",
       "fix": "Keep the one claim that is true and specific. Cut the two that pad the rhythm.",
       "test": {
         "type": "text-pattern",
         "pattern": "^\\s*\\w+(\\s+\\w+)?,\\s+\\w+(\\s+\\w+)?,?\\s+and\\s+\\w+",
+        "flags": "i",
+        "sourcePattern": "(^#{1,6}\\s+|<h[1-6][^>]*>\\s*)\\w+(\\s+\\w+)?,\\s+\\w+(\\s+\\w+)?,?\\s+and\\s+\\w+"
+      }
+    },
+    {
+      "id": "llm-artifact",
+      "severity": "hard",
+      "scope": "text",
+      "title": "Raw model output left in the copy",
+      "why": "Citation stubs and assistant disclaimers that exist only because text was pasted straight out of a chat window. Nothing else explains them being there.",
+      "fix": "Delete them. Where a citation was actually meant, write the real link.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "(contentReference|oaicite|turn\\d+search\\d+|\\[cite:\\s*\\d+\\]|\\[span_\\d+\\]|grok_render|ppl-ai-file-upload|as an AI language model|my (knowledge|training) (cut-?off|data)|I do not have access to real-?time)",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "negative-parallelism",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Not just X, it is Y",
+      "why": "The most recognizable sentence shape in machine-written copy. It promises a distinction, then supplies both halves itself, so the reader learns nothing they were not handed.",
+      "fix": "Keep the half that is true and specific. The setup was never carrying information.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(not just|isn'?t just|is not just|not only|no longer just)\\b[^.!?]{0,60}?\\b(but|it'?s|they'?re|its)\\b",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "throat-clearing-open",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Opening that delays the claim",
+      "why": "'In today's fast-paced world' and its relatives occupy the space where the first real sentence should be.",
+      "fix": "Delete the opener, start at the claim, and check whether anything died.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(in (today'?s|an era of|a world (of|where))\\s|let'?s (dive in|dive into|explore|take a look|unpack)\\b|it'?s (worth noting|important to note|no secret)\\b)",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "tidy-ending",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Ending that gestures instead of concluding",
+      "why": "Machine-written pieces end by reaching for significance, because there is nothing left to say and the shape demands a close.",
+      "fix": "End on the last real thing you have to say, or on a concrete instruction.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(in conclusion|at the end of the day|the future looks bright|possibilities are endless|only time will tell|one thing is clear|exciting times (lie )?ahead)\\b",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "formal-transition",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Essay transition opening a line",
+      "why": "Furthermore, Moreover and Additionally are connective tissue added where the ideas are not actually connected.",
+      "fix": "Link the ideas by reasoning, or start the sentence at its subject.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "^\\s*(?:<[a-z][a-z0-9]*\\b[^>]*>\\s*)?(?:[-*>]\\s*)?(Furthermore|Moreover|Additionally|Nevertheless|Consequently|Notably|Importantly)\\s*,",
         "flags": "i"
+      }
+    },
+    {
+      "id": "ai-vocabulary",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "High-frequency model vocabulary",
+      "why": "Words that appear far more often in generated text than in anyone speaking. One is coincidence; a cluster is a signature.",
+      "fix": "Use the word you would say out loud.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(delve|delving|tapestry|meticulous(ly)?|intricac(y|ies)|pivotal|beacon of|realm of|symphony of|garner(ed|ing)?|myriad|plethora|multifaceted|underscores the)\\b",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "copula-avoidance",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Stands as, instead of is",
+      "why": "Models replace a plain \"is\" with a verb that sounds weightier and asserts less.",
+      "fix": "Use is, are, or has.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(stands as an?|serves as a testament|is a testament to|stands testament|serves as a reminder)\\b",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "sycophantic-open",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Assistant pleasantries in shipped copy",
+      "why": "\"Great question\" and \"I hope this helps\" are addressed to a prompt, not to a reader.",
+      "fix": "Delete. The reader did not ask you anything.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(great question|that'?s a great question|i hope this helps|hope that helps|happy to help)\\b|\\b(certainly|absolutely|of course)!",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "hedge-stack",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Stacked hedging",
+      "why": "Two or three qualifiers on one claim, which is what gets written when nobody checked whether the claim is true.",
+      "fix": "Check the claim, then state it. Or name the specific uncertainty instead of gesturing at doubt.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b((may|might|could|can) potentially|it (may|might|could) be possible|arguably one of the|somewhat of an?)\\b",
+        "flags": "gi"
+      }
+    },
+    {
+      "id": "promotional-tone",
+      "severity": "advisory",
+      "scope": "text",
+      "title": "Brochure adjectives",
+      "why": "Travel-brochure register. It reads as advertising even when the product is good, and it survives being pasted onto any topic, which is the giveaway.",
+      "fix": "Replace the adjective with the fact that made you reach for it.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b(nestled|in the heart of|boasts an?|breathtaking|must[- ]visit|game[- ]chang(er|ing)|unleash(ing)?|revolutionary|groundbreaking|state[- ]of[- ]the[- ]art)\\b",
+        "flags": "gi"
       }
     }
   ]

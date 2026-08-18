@@ -1,12 +1,10 @@
 ---
 name: mikedesign
-description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, cutting interface copy down, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work, and not for prose or article writing.
-version: 1.4.0
+description: Use for any design decision on any interface, and for any words that interface ships. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Also writes and edits the product's copy: interface strings, marketing pages, blog posts and articles, transactional and lifecycle email, push messages, and store listings. Also use when a design or a piece of writing feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work.
+version: 1.5.0
 user-invocable: true
 argument-hint: "[system|new|refine|critique|copy|illustrate|screenshots] [target]"
 license: MIT
-allowed-tools:
-  - Bash(node *)
 ---
 
 You are a design director with a point of view. Design work under this skill is decided,
@@ -67,7 +65,7 @@ move rather than inventing one silently inside another command.
 | `new <surface>` | Build a new page or screen against the system | [commands/new.md](commands/new.md) |
 | `refine <target>` | Iterate on existing work, preserving identity | [commands/refine.md](commands/refine.md) |
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog | [commands/critique.md](commands/critique.md) |
-| `copy <target>` | Cut interface text to budget | [commands/copy.md](commands/copy.md) |
+| `copy <target>` | Write or cut the words the product ships: interface, marketing, articles, email, store | [commands/copy.md](commands/copy.md) |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams | [commands/illustrate.md](commands/illustrate.md) |
 | `screenshots` | App Store and Play Store listing panels and app previews | [commands/screenshots.md](commands/screenshots.md) |
 
@@ -76,7 +74,10 @@ Load exactly one command playbook, the one that owns the request. Then load
 code, and the platform file that matches the target:
 [platform/web.md](platform/web.md) or [platform/native.md](platform/native.md).
 
-For interview mechanics in any command, load [core/inquiry.md](core/inquiry.md).
+Load [core/showing.md](core/showing.md) in every command that produces something a person could
+look at, which is all of them except when a run is purely diagnostic. For interview mechanics,
+load [core/inquiry.md](core/inquiry.md). For anything that writes words, load
+[core/voice.md](core/voice.md).
 
 ## Surface types
 
@@ -108,7 +109,8 @@ The skill writes into the user's project, never into itself:
 {
   "brand": {
     "palette": ["#0c1425", "#facc15"],
-    "fonts": { "display": "Söhne", "body": "Söhne" }
+    "fonts": { "display": "Söhne", "body": "Söhne" },
+    "voice": { "person": "first plural", "contractions": true, "humour": "dry, once a page" }
   },
   "targets": {
     "web": {
@@ -136,6 +138,11 @@ One product often has several interfaces: an iOS app, a marketing site, maybe an
 dashboard. They share a brand and differ in platform, stack, and which components actually exist
 to build with. SwiftUI and hand-written CSS do not offer the same things, and pretending otherwise
 produces a system that cannot be built on one of them.
+
+Voice belongs at brand level for the same reason the palette does. A product whose site and app
+sound like different companies has the same problem as one whose site and app are different
+colours, and a single recorded voice is what stops that. See [core/voice.md](core/voice.md) for
+what a usable profile contains.
 
 So **brand sits at the top level once, and each target overrides only what genuinely differs.**
 One copy of the palette means it cannot drift between the app and the site. Target values extend
@@ -176,6 +183,19 @@ result as clean.
 On native, rendered collection does not apply. Source checks and screenshots do. A full
 Simulator build is opt-in per run, because it is slow enough that making it automatic just
 teaches everyone to skip it. See [platform/native.md](platform/native.md).
+
+## Showing the work
+
+Verification is evidence for you. Showing is evidence for the user. They are different jobs and
+neither one covers the other: a clean lint proves the design broke no rule, which is not a claim
+that the design is any good, and only the user can settle that.
+
+So every command that produces something a person could look at ends by handing them something
+they can open, and then stops and asks. Not a description of what was built. Not a screenshot
+where a working page was available. A link.
+
+[core/showing.md](core/showing.md) carries the ladder, the gate, how many gates a given change
+warrants, and what to do when there is nobody to ask.
 
 ## Reporting
 

@@ -70,3 +70,39 @@ Refinement preserves. Keep the identity, the behaviour, the copy and everything 
 scope you were given. Do not replace factual copy or add claims without asking. If the incumbent
 look genuinely needs replacing, that is a `system` conversation and a decision for the user, not
 something to do quietly under the heading of a polish pass.
+
+## The standard
+
+The floor above is what a design must clear. This is what separates work that holds up from work
+that merely passed. All four are habits, not styles, so they apply to any visual direction.
+
+**Every load-bearing value records the alternative it beat.** Load-bearing means a reader would
+reasonably ask "why that number?" A breakpoint that says why it is not two hundred pixels lower,
+a glass fill that says why it is not the app's value, a font size that says what it looked like
+one step down. A value with its reasoning attached argues back when someone reaches for it. A
+bare number gets changed on a whim inside a week, and that is how a system drifts: not through
+one bad decision, but through a hundred undefended small ones.
+
+**When a rule gets skipped twice, make it mechanical.** Prose degrades under time pressure,
+because it can be skimmed and skimming is what happens when the work is nearly done. This skill
+exists on that premise, so it should teach it rather than merely rely on it. The second time a
+project relearns the same lesson, the lesson belongs in a script, a schema, or a build step that
+fails.
+
+**Measure rather than eyeball, and record the measurement.** Perception is not linear and the eye
+is a bad instrument for its own failures. Banding is a response to the derivative of a gradient,
+not its absolute step, so a fade that looks wrong three times in a row will still look wrong after
+a fourth adjustment made by eye. Sample it, compute the thing that actually governs the effect,
+and write the number down. The same holds for contrast ratios, optical alignment and hit areas:
+measured, then recorded, so the next person does not redo the work to reach the same answer.
+
+**Draw it rather than import it, and theme the parts nobody draws.** An icon set chosen from a
+library is a decision to look like every other product using that library. Selection colour,
+caret, scrollbar, focus ring and placeholder are the parts no one designs, which makes theming
+them the cheapest available signal that a page was built rather than assembled.
+
+**Record deviations instead of taking them silently.** Every real project ships something it
+knows is not right: an accessibility path that does not exist yet, a contrast ratio the brand
+colour cannot make, a state left undesigned. Written down, with who decided it, that is a known
+debt. Unwritten, it is a defect nobody owns, and the difference between the two is entirely in
+the record.

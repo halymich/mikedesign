@@ -59,3 +59,12 @@ cannot act on is a complaint.
 Give a score out of 10 with one sentence of justification, and state the coverage the score rests
 on. A 7 based on partial coverage is a 7 about half the surface, and saying so is the difference
 between a critique and a guess.
+
+## 5. Show what the score rests on
+
+This command changes nothing, so it has no approval gate. It still owes the user its evidence.
+
+A score and a file path ask them to take your word for it. Send the desktop and mobile screenshots
+you actually read, and where a finding is visual, point at it in the image rather than describing
+it in prose. Someone who disagrees with a finding can only say so if they can see what you saw.
+[../core/showing.md](../core/showing.md) covers the mechanics.

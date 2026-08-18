@@ -42,6 +42,13 @@ product and therefore describes none.
 Sections earn their place by carrying something the sequence needs. A section that exists
 because pages usually have one is the definition of the thing this skill prevents.
 
+**Gate on the sequence before you build it**, when the direction for this surface is new. The
+section list is the cheapest artifact to change and the most expensive to change late: reordering
+a list costs a sentence, reordering a built page costs the page. Show the sequence, say which
+section you are least sure earns its place, and ask. See [../core/showing.md](../core/showing.md)
+for how many gates this surface warrants; a page inside an already-approved direction needs only
+the one at the end.
+
 ## 5. Build
 
 Load [../core/craft-floor.md](../core/craft-floor.md) and the matching platform file. Build the
@@ -57,5 +64,15 @@ has, that is usually the signal it should be a mockup, a diagram or a demonstrat
 Render, collect, lint, screenshot desktop and mobile, read the screenshots. Fix everything one
 round shows, confirm with at most one more round, then stop. Open-ended self-review costs the
 user money and finds less than one careful look.
+
+## 7. Show it, and stop
+
+Verification proved the surface broke no rule. It cannot tell you the surface is any good, and
+you are not the one who gets to decide that.
+
+Hand over something the user can open and click: the real project running if it has a dev server,
+otherwise a published artifact. Desktop and mobile both. Name the two or three decisions you want
+judged and say which one you are least sure about, then ask and wait.
+[../core/showing.md](../core/showing.md) has the ladder and the gate.
 
 Report assumptions first, then what shipped, then what needs deciding.

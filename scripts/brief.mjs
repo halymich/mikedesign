@@ -48,7 +48,27 @@ const SYSTEM_FIELDS = [
   ['deferred',        'What is deliberately NOT being built yet, so the next run does not re-argue it.'],
 ];
 
-const FIELD_SETS = { base: BASE_FIELDS, system: [...BASE_FIELDS, ...SYSTEM_FIELDS] };
+/*
+ * Extra fields for a `copy` brief.
+ *
+ * Slop is what gets written when nobody decided who is talking. Drafting with
+ * the tone and the claims both unsettled means the model fills both from the
+ * average, which reads fluent and says nothing. These are the answers that turn
+ * drafting into a constrained problem instead of an open one.
+ */
+const COPY_FIELDS = [
+  ['copy-scope',      'interface, marketing, article, lifecycle or store. Sets the budgets and the structure.'],
+  ['voice-source',    'Real writing by this owner to read first, or "none" if there is nothing published yet.'],
+  ['reader-knows',    'What the reader already understands, so the piece does not explain it again.'],
+  ['the-claim',       'What this piece asserts, in one sentence. If it cannot be said in one, it is two pieces.'],
+  ['never-say',       'Words, phrases and framings this owner would not use. Quoted, not described.'],
+];
+
+const FIELD_SETS = {
+  base: BASE_FIELDS,
+  system: [...BASE_FIELDS, ...SYSTEM_FIELDS],
+  copy: [...BASE_FIELDS, ...COPY_FIELDS],
+};
 const MARKER = /<!--\s*fields:\s*(\w+)\s*-->/;
 
 const PLACEHOLDERS = new Set(['tbd', 'todo', '?', '-', 'n/a', '<reason required>', '']);
