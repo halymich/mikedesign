@@ -111,8 +111,15 @@ If you cannot name how a concept differs on all three axes, it is not a third co
 should replace it before showing anything.
 
 Render into a scratch directory, never into the project tree, so an interrupted run leaves
-nothing behind. Show them with real copy from the brief, at desktop and mobile. Then ask which
-one, and equally what to steal from the losers.
+nothing behind. Use real copy from the brief, at desktop and mobile.
+
+**Show all three on one page, not as three separate links.** Comparison is the entire point of
+this step, and a user clicking between three tabs is comparing each concept against their memory
+of the last one rather than against the thing itself. Publish one artifact holding all three,
+stacked, each labelled with its three axes. Follow [../core/showing.md](../core/showing.md).
+
+Then gate: which one, and equally what to steal from the losers. The second half of that question
+is the one that gets skipped, and it is where most of the final direction actually comes from.
 
 ## 6. Write DESIGN.md
 
@@ -122,6 +129,16 @@ contract the scripts read.
 Cover, once at brand level: the chosen direction and why, the type system with real sizes and
 weights, the palette with the role of each colour, spacing scale, radius and depth, motion
 character, voice, and the rules of the illustration style if one exists yet.
+
+Voice belongs at brand level for the same reason the palette does: it spans every target, and one
+copy of it cannot drift between the app and the site. Capture it properly per
+[../core/voice.md](../core/voice.md) rather than writing three adjectives. A profile that says
+"friendly and professional" has decided nothing, and `copy` will not be able to use it.
+
+**Record the alternative each load-bearing value beat.** Not every value: load-bearing means a
+reader would reasonably ask "why that number?" A breakpoint that says why it is not 200px lower
+survives contact with the next person to touch it. One that just states a number gets changed on
+a whim within a week, because nothing in the file argues back.
 
 Then a section per target covering its platform, its stack, **the components actually available
 to build with**, and any deviation from brand with the reason. Record any hard rule the brief

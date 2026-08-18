@@ -58,7 +58,7 @@ critique files are regenerable and belong in `.gitignore`.
 | `new <surface>` | Builds a new page or screen against that system |
 | `refine <target>` | Iterates on existing work without redesigning it |
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog |
-| `copy <target>` | Cuts interface text to budget |
+| `copy <target>` | Writes or cuts the words the product ships: interface, marketing, articles, email, store |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams |
 | `screenshots` | App Store and Play Store listing panels and app preview videos |
 
@@ -75,8 +75,14 @@ a mockup or a demonstration, never smaller type.
 
 **Zero AI slop.** The tells the design community now recognizes on sight: indigo and violet
 defaults, gradient text, eyebrow labels, emoji as icons, halo shadows, default typefaces as the
-display voice, fabricated testimonials and metrics, filler phrasing. Hard rules gate. Advisory
-rules report and never block, because a strict linter that cries wolf gets switched off.
+display voice, fabricated testimonials and metrics, filler phrasing. In writing: negative
+parallelism, essay transitions, brochure adjectives, endings that gesture at significance, and
+raw model output left in the copy. Hard rules gate. Advisory rules report and never block,
+because a strict linter that cries wolf gets switched off.
+
+**Show the work.** Every command that produces something a person could look at ends by handing
+them a link they can open, then stops and asks. Verification is evidence for the model; showing
+is evidence for the user, and a clean lint has never meant the design was any good.
 
 ## Checking the rendered page, not the source
 
@@ -195,7 +201,24 @@ deliberately simple: `border-radius` for the size, `corner-shape` for the shape.
 ## Adding a tell
 
 Edit `data/rules.json`. One entry, and every command inherits it. That is the whole maintenance
-story, and it is the reason this is twenty-three files instead of eighty.
+story, and it is the reason this is a couple of dozen files instead of eighty.
+
+Add a trigger line to `fixtures/slop.html` at the same time. `scripts/verify.sh` asserts that
+every declared rule catches its own fixture, so a rule with no fixture fails the suite, and a rule
+that silently stopped matching cannot hide.
+
+A rule that depends on knowing an element's role needs two patterns. `pattern` runs against
+rendered text, where the role is already known. `sourcePattern` runs against raw files, where it
+is not, so it has to find the role in the markup. Without that split a headline rule fires on
+every paragraph of every article.
+
+## Why not the humanizer skill
+
+Deliberate overlap. `humanizer` derives from Wikipedia's signs-of-AI-writing guide, and its target
+register is encyclopedic neutrality. That is the right goal for an encyclopedia and the wrong one
+for a landing page, where the fix for slop is more voice rather than less. `core/voice.md` is
+built around capturing a specific person's voice and then enforcing it, which is a different job.
+Use both if you like; do not expect them to agree.
 
 ## Licence
 
