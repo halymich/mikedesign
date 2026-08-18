@@ -461,7 +461,10 @@ function runSource(paths) {
     try { content = readFileSync(file, 'utf8'); } catch { coverage.source.skipped++; continue; }
     const lines = content.split('\n');
     for (const rule of textRules) {
-      const re = new RegExp(rule.test.pattern, rule.test.flags || '');
+      // Rendered text arrives with its role already known, so a rule can match bare prose.
+      // Raw source does not, so a role-specific rule declares sourcePattern to find the role
+      // in the markup itself. Without it a headline rule fires on every paragraph.
+      const re = new RegExp(rule.test.sourcePattern || rule.test.pattern, rule.test.flags || '');
       lines.forEach((line, i) => {
         const m = line.match(re);
         if (m) report(rule, `${file}:${i + 1}`, m[0].trim(), line);
