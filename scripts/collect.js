@@ -60,6 +60,8 @@
   // Own text only: text in this element's direct text nodes, not descendants.
   // Without this every ancestor inherits its children's copy and word budgets
   // fire on the <body>.
+  const px = (v) => parseFloat(String(v || '')) || 16;
+
   const ownText = (el) => {
     let out = '';
     for (const n of el.childNodes) {
@@ -111,6 +113,84 @@
     el.tagName === 'TEXTAREA' ||
     (el.hasAttribute && el.hasAttribute('tabindex'));
 
+  /*
+   * Eyebrow geometry.
+   *
+   * An eyebrow is a visual relationship, not a DOM one: a short line of small
+   * type sitting immediately above a much larger heading. Keying off
+   * nextElementSibling caught only the naive markup and missed every eyebrow
+   * wrapped in its own div, which is how component libraries emit them. So this
+   * measures the rendered stack instead: any heading whose top edge sits just
+   * below this element's bottom edge, sharing a left edge or a centre line, set
+   * meaningfully larger. Structure-independent by construction, which is the
+   * same reason the rest of this file reads computed style rather than source.
+   */
+  const HEADINGS = [];
+  if (document.body) {
+    for (const h of document.body.querySelectorAll('h1, h2, h3')) {
+      const r = h.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue;
+      const hs = window.getComputedStyle(h);
+      if (hs.display === 'none' || hs.visibility === 'hidden') continue;
+      HEADINGS.push({
+        el: h,
+        rect: r,
+        size: parseFloat(hs.fontSize) || 16,
+        text: (h.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+      });
+    }
+  }
+
+  const MAX_GAP = 48;    // px between the two boxes. Wider than this and they read as separate blocks.
+  const ALIGN_TOL = 10;  // px of slop on the shared left edge or shared centre.
+  const MIN_RATIO = 1.4; // heading must be this much larger, or the two are peers rather than label and heading.
+
+  const eyebrowTarget = (el, rect, size) => {
+    if (!rect || rect.height === 0) return null;
+    if (/^H[1-6]$/.test(el.tagName)) return null;
+    // A call to action above a heading is a button, not an eyebrow. Without this
+    // the fixture's own CTA matched the geometry and was silenced only by the
+    // link exemption, which is the wrong reason to let something through.
+    if (isControl(el)) return null;
+    let best = null;
+    for (const h of HEADINGS) {
+      if (h.el === el || el.contains(h.el) || h.el.contains(el)) continue;
+      const gap = h.rect.top - rect.bottom;
+      if (gap < -2 || gap > MAX_GAP) continue;
+      if (h.size < size * MIN_RATIO) continue;
+      const sharesLeft = Math.abs(h.rect.left - rect.left) <= ALIGN_TOL;
+      const sharesCentre = Math.abs((h.rect.left + h.rect.width / 2) - (rect.left + rect.width / 2)) <= ALIGN_TOL;
+      if (!sharesLeft && !sharesCentre) continue;
+      if (!best || gap < best.gap) best = { gap: Math.round(gap), text: h.text, ratio: +(h.size / size).toFixed(2) };
+    }
+    return best;
+  };
+
+  // Structural exemptions, resolved here where the DOM is available rather than
+  // guessed from text later. A category or a date earns its place above a
+  // heading when it is real navigation or real metadata; the same word set as
+  // inert decoration does not.
+  // "It is a link" is only a defence if the link has a destination. An anchor
+  // pointing at "#" is decoration wearing a tag.
+  const realLink = (el) => {
+    const a = el.tagName === 'A' ? el : (el.querySelector ? el.querySelector('a') : null);
+    if (!a) return false;
+    const href = a.getAttribute('href') || '';
+    return !!href && href !== '#' && !/^javascript:/i.test(href);
+  };
+
+  const inBreadcrumb = (el) => {
+    let n = el;
+    for (let d = 0; n && d < 6; d++, n = n.parentElement) {
+      if (n.tagName === 'NAV') return true;
+      const al = n.getAttribute && n.getAttribute('aria-label');
+      if (al && /breadcrumb/i.test(al)) return true;
+      const c = n.className && n.className.baseVal !== undefined ? n.className.baseVal : n.className;
+      if (/breadcrumb/i.test(String(c || ''))) return true;
+    }
+    return false;
+  };
+
   const all = document.body ? document.body.querySelectorAll('*') : [];
   const elements = [];
   let scanned = 0;
@@ -155,9 +235,15 @@
       prevTag: prev ? prev.tagName : '',
       nextTag: next ? next.tagName : '',
       nextIsHeadline: !!(next && (next.tagName === 'H1' || next.tagName === 'H2')),
+      above: eyebrowTarget(el, rect, px(cs.fontSize)),
+      isLink: realLink(el),
+      inBreadcrumb: inBreadcrumb(el),
+      timeTag: el.tagName === 'TIME' || !!(el.querySelector && el.querySelector('time')),
       parentTag: el.parentElement ? el.parentElement.tagName : '',
       parentSig: el.parentElement ? sig(el.parentElement) : '',
       sig: sig(el),
+      x: Math.round(rect.left),
+      y: Math.round(rect.top),
       w: Math.round(rect.width),
       h: Math.round(rect.height),
       focusable: focusable(el),

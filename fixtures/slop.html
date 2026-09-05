@@ -27,6 +27,19 @@
     z-index: 0;
   }
 
+  /* The second eyebrow is the one the old uppercase-plus-sibling test missed:
+     sentence case, brand-coloured, wrapped in its own div, above an h2. */
+  .kicker-wrap { margin: 0 0 10px; }
+  .kicker {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    /* Deliberately NOT another indigo: this element exists to test the eyebrow
+       geometry, and a fourth violet would quietly change the palette counts that
+       other tests depend on. */
+    color: #0f766e;
+  }
+
   .eyebrow {                                   /* eyebrow-label */
     text-transform: uppercase;
     letter-spacing: .18em;
@@ -88,6 +101,9 @@
     who want to take their travel spending to the next level.
   </p>
   <a class="cta" href="#">Get started</a>
+
+  <div class="kicker-wrap"><span class="kicker">Why teams pick us</span></div>
+  <h2>Everything you need in one place</h2>
 
   <div class="cards">
     <div class="card">

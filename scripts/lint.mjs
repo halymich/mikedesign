@@ -291,12 +291,25 @@ function runRendered(data) {
     }
 
     else if (t.type === 'eyebrow') {
+      // The collector already decided the geometry: `above` is set only when a
+      // heading sits within 48px below this element, shares its left edge or its
+      // centre line, and is at least 1.4x the size. That covers sentence case,
+      // pills, coloured labels and anything wrapped in its own div, none of
+      // which the old uppercase-and-next-sibling test could see.
+      const exemptText = (t.exemptText || []).map((r) => new RegExp(r, 'i'));
+      const structural = new Set(t.exemptStructural || []);
       for (const el of els) {
-        if (!el.nextIsHeadline || !el.text) continue;
+        if (!el.above || !el.text) continue;
         if (words(el.text) > t.maxWords) continue;
-        const size = px(el.styles.fontSize) ?? 16;
-        const upper = el.styles.textTransform === 'uppercase' || (/[A-Z]/.test(el.text) && !/[a-z]/.test(el.text));
-        if (upper && size <= 20) report(rule, locator(el), `"${el.text}" directly above a heading`);
+        if (structural.has('breadcrumb') && el.inBreadcrumb) continue;
+        if (structural.has('link') && el.isLink) continue;
+        if (structural.has('time') && el.timeTag) continue;
+        if (exemptText.some((re) => re.test(el.text.trim()))) continue;
+        report(
+          rule,
+          locator(el),
+          `"${el.text}" stacked ${el.above.gap}px above the heading "${el.above.text}", which is ${el.above.ratio}x its size`,
+        );
       }
     }
 
@@ -543,7 +556,8 @@ if (coverage.rendered.ran) {
     (coverage.rendered.truncated ? ' (truncated at collector cap)' : ''));
   if (!coverage.rendered.layoutReliable) {
     line('            viewport reported zero width, so size-dependent checks did not');
-    line('            get a real layout. Re-collect from a sized window for those.');
+    line('            get a real layout. That includes the eyebrow check, which is');
+    line('            measured as geometry. Re-collect from a sized window.');
   }
 } else {
   line('  rendered: NOT RUN');

@@ -85,6 +85,24 @@ the average, and the result is fluent and anonymous.
 
 With a profile, drafting is a constrained problem, which is the kind models are good at.
 
+## One headline, never two
+
+A headline ships alone. Never write a short line to sit above it: no eyebrow, no kicker, no
+label, no "Introducing", no category word in caps, whatever the deliverable calls the slot.
+
+It reads like structure and it is filler. The eyebrow takes the first position on the surface,
+the place the eye lands, and spends it announcing the topic the headline is about to name
+properly a moment later in bigger type. Two lines, one idea, and the weaker one goes first.
+
+When a headline feels like it needs a line above it for context, the headline is unfinished.
+Rewrite it until it carries the context itself, which it has to do anyway in a search result, a
+share card, a tab title and a screen reader, where the eyebrow does not travel.
+
+Real information above a heading is allowed only as the component it actually is: a breadcrumb
+of links, a step counter, a byline, a date, a chapter number. Never as a decorative line of type.
+This applies to every scope, including a headline handed back in a markdown file or a chat
+message, because whoever receives it will set it as written.
+
 ## What no voice profile permits
 
 Voice governs how something is said. It never governs whether it is true. A confident voice
