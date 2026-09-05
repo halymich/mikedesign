@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "note": "Single source of truth for mikedesign. Adding a tell here makes every command inherit it. Severity 'hard' gates a result; 'advisory' is reported for judgment and never blocks. Scope 'rendered' needs computed styles collected from a real browser; 'text' runs on visible text from either source.",
   "budgets": {
     "_note": "Word ceilings by surface type. 'read' surfaces (docs, legal, articles) deliberately have no body ceiling. Override per project in the DESIGN.md config block.",
@@ -90,11 +90,23 @@
       "severity": "hard",
       "scope": "rendered",
       "title": "Eyebrow / kicker label above a heading",
-      "why": "A small uppercase label announcing the section the heading is about to name. Pure filler; the heading already carries its own weight.",
-      "fix": "Delete it. If it holds real information, fold that into the heading.",
+      "why": "A small line of type stacked above a heading, announcing the thing the heading is about to say. The single most recognizable tell of generated design. It is filler in every case: the heading already carries its own weight, and the eyebrow steals the first thing the eye lands on to say nothing. Case, colour and shape are irrelevant to whether it is one, so this is measured as geometry, not as an uppercase class name.",
+      "fix": "Delete it. Anything real inside it belongs in the heading, or in a component that looks like what it is: a breadcrumb, a progress indicator, a byline, a dateline. Never invent a second, smaller headline to sit above the first one.",
       "test": {
         "type": "eyebrow",
-        "maxWords": 4
+        "maxWords": 8,
+        "_exemptNote": "A closed list, deliberately. 'It carries real information' is a judgment the model always resolves in its own favour, so the carve-out is a fixed set of patterns plus two structural tests, and anything outside it fails. A bare category word is exempt only when it is an actual link to that category or sits in a breadcrumb; as inert text it is decoration.",
+        "exemptStructural": ["breadcrumb", "link", "time"],
+        "exemptText": [
+          "^(step|question|part|page)\\s+\\d+(\\s*(of|/)\\s*\\d+)?$",
+          "^\\d+\\s*(of|/)\\s*\\d+$",
+          "^(chapter|section|lesson|module|unit|day|week|volume|issue|episode|series|act)\\s+[\\dIVXLC]+\\b",
+          "^(by|posted by|written by|photographs by|illustration by)\\s+\\S",
+          "^\\d{1,2}\\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)",
+          "^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?\\s+\\d{1,2},?\\s*\\d{0,4}$",
+          "^\\d{4}-\\d{2}-\\d{2}$",
+          "^\\d+\\s+min(ute)?s?\\s+read$"
+        ]
       }
     },
     {

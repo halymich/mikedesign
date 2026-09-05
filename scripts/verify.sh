@@ -138,7 +138,26 @@ check "target palette silences its own"  "$(indigo --design "$T/DESIGN.md" --tar
 rm -rf "$T"
 
 echo
-echo "8. Store assets are checked against real store rules"
+echo "8. The eyebrow ban catches the pattern, not the class name"
+eyebrow() { node scripts/lint.mjs --rendered "$1" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="eyebrow-label").length)})'; }
+# Two on the slop page: the naive uppercase <p> sibling, and a sentence-case
+# teal <span> wrapped in its own div above an h2. The second is the regression
+# that matters, because it is what component libraries actually emit and what
+# the old uppercase-plus-nextElementSibling test could not see.
+check "both eyebrows caught, wrapped included" "$(eyebrow "$SLOP")" "2"
+# The clean page carries four elements sitting above a heading: a breadcrumb of
+# real links, a step counter, a dateline in a <time>. None is an eyebrow and none
+# may fire, or the exemptions are theatre.
+check "permitted components do not fire"       "$(eyebrow "$CLEAN")" "0"
+# A call to action above a heading matches the geometry exactly and must be
+# excluded as a control, not rescued by the link exemption.
+CTA=$(node scripts/lint.mjs --rendered "$SLOP" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="eyebrow-label"&&/Get started/.test(f.evidence)).length)})')
+check "a CTA above a heading is not an eyebrow" "$CTA" "0"
+
+echo
+echo "9. Store assets are checked against real store rules"
 node scripts/shots.mjs devices ios >/dev/null 2>&1
 check "device specs load"                "$?" "0"
 A=$(mktemp -d); mkdir -p "$A/en-US"; cp fixtures/store/screens/home.png "$A/en-US/01.png"

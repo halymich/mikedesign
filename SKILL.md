@@ -47,6 +47,14 @@ on sight. Hard rules gate the work. Advisory rules are reported for judgment and
 The user's explicit brief overrides any rule, and the override is recorded in `DESIGN.md` so the
 decision is visible later. Their intent wins; your habits do not.
 
+One of them is not a judgment call and has no override: **never put anything above a headline.**
+No eyebrow, no kicker, no small uppercase label, no coloured pill, in any case or shape. It is
+the most recognizable tell of generated design and it is filler every time. Real information
+above a heading is allowed only as the component it actually is, and only in four cases: a
+breadcrumb of working links, a step counter, a byline, a date or chapter number. The rule is in
+[core/craft-floor.md](core/craft-floor.md) for building and [core/voice.md](core/voice.md) for
+writing, and the linter measures it as geometry, so case and class name do not get you past it.
+
 ## Setup
 
 Resolve script paths from the base directory the runtime reports for this skill, not from a

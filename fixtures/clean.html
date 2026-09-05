@@ -53,6 +53,14 @@
   ul { padding-left: 20px; color: var(--ink-soft); }
   li { margin-bottom: 8px; }
 
+  /* Real information above a heading, in the component it actually is. None of
+     these is an eyebrow and none may fire: a breadcrumb of working links, a
+     progress counter, and a dateline in a time element. */
+  .crumbs { font-size: 14px; margin: 0 0 12px; }
+  .crumbs a { color: var(--ink-soft); }
+  .step { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; }
+  .dateline { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; display: block; }
+
   ::selection { background: var(--accent); color: var(--ground); }
 </style>
 </head>
@@ -65,6 +73,7 @@
 
   <hr class="rule">
 
+  <p class="step">Step 2 of 4</p>
   <h2>How it works</h2>
   <p>
     You paste the booking. We check the same room, same dates, on the same site, on a schedule.
@@ -78,9 +87,19 @@
 
   <hr class="rule">
 
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/pricing">Pricing</a></nav>
   <h2>What it costs</h2>
   <p>
     Free while we are in beta. If we ever charge, we will tell you before the first one.
+  </p>
+
+  <hr class="rule">
+
+  <time class="dateline" datetime="2026-09-05">5 September 2026</time>
+  <h2>Notes from the beta</h2>
+  <p>
+    Three hundred bookings watched so far. The average drop we caught was eleven percent, and the
+    largest was a room in Lisbon that fell by half the week before check-in.
   </p>
 
 </div>

@@ -50,6 +50,40 @@ rather than assembled, and it is the thing models skip most reliably.
 **Real content.** Longest plausible name, empty list, one item, a thousand items, a broken image,
 a slow network. Design that only works at the demo length is not finished.
 
+## Never write an eyebrow
+
+Nothing goes above a headline. No small line of type, no uppercase label, no coloured pill, no
+short phrase in the brand accent, at any size, in any case, in any shape. If a heading is the
+first thing in a block, it stays the first thing in a block.
+
+This is the single most recognizable tell of generated design, and it survives every other rule
+in this file because it looks like craft while it is being written. It is not. The eyebrow spends
+the most valuable position on the surface, the place the eye lands first, restating the topic that
+the headline is about to state properly. "Introducing" above "Meet the new editor". "OUR PROCESS"
+above "How we work". The reader learns nothing from the first line that the second does not give
+them a moment later, in bigger type, better written.
+
+The pull toward it is real, so name it: an eyebrow feels like it adds context to a headline that
+seems bare. A headline that needs an eyebrow is a headline that is not finished. Rewrite the
+headline until it stands alone, which is what it has to do anyway on a search result, a share
+card, a tab title and a screen reader.
+
+Four things are not eyebrows, and each is allowed only in its own real component, never as a
+decorative line of text:
+
+- A **breadcrumb**: actual links, in a `nav`, going somewhere.
+- A **progress indicator**: "Step 2 of 4", and it should look like progress, not like a label.
+- A **dateline or byline** on an article: a real date in a `time` element, a real author.
+- A **numbered sequence** in long-form content: "Chapter 3", "Issue 14".
+
+The linter enforces this list literally, by geometry rather than by class name, so a sentence-case
+eyebrow, a pill-shaped one, or one wrapped in its own div all fail the same way an uppercase one
+does. Do not reach for the exemptions to smuggle a label through. A category word is exempt when
+it is a link that goes to that category and at no other time.
+
+The copy side of this is the same rule: when writing headlines, write one headline. Never hand
+back a headline with a short line above it, whatever it is labelled in the deliverable.
+
 ## Judgment the linter cannot make
 
 - **Hierarchy.** Squint at it. If everything is equally loud, nothing is. The most important
