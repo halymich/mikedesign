@@ -1,6 +1,6 @@
 # mikedesign
 
-A design skill for Claude Code. One skill, seven commands, and a rule set that is enforced by
+A design skill for Claude Code and Codex. One skill, seven commands, and a rule set that is enforced by
 scripts rather than by hoping the model remembers.
 
 It exists because design guidance written as prose degrades. Models skim it, and under time
@@ -12,16 +12,17 @@ be checked.
 
 ```bash
 git clone https://github.com/halymich/mikedesign.git ~/.claude/skills/mikedesign
+ln -s ~/.claude/skills/mikedesign ~/.agents/skills/mikedesign   # Codex
 ```
 
-Node is the only dependency, and Claude Code already requires it. Nothing to build, nothing to
+Node is the only dependency, and both tools already require it. Nothing to build, nothing to
 configure.
 
-To have Claude reach for it automatically, add a line to `~/.claude/CLAUDE.md`:
+To have the agent reach for it automatically, add a line to your global `AGENTS.md` (or `CLAUDE.md`):
 
 ```
 Design decisions (visual identity, layout, styling, interface copy, illustration) go through the
-`mikedesign` skill, never ad hoc. If I did not name a command, use AskUserQuestion to confirm and
+`mikedesign` skill, never ad hoc. If I did not name a command, ask me once to confirm and
 route. Mechanical changes where I already specified the value are routine calls and proceed
 directly.
 ```

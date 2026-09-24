@@ -30,7 +30,7 @@ Deleting a stub to make the script pass is falsifying the record.
 
 ## Asking well
 
-Use `AskUserQuestion`, up to four questions per call, factual before visual.
+Use your tool's structured question feature (`AskUserQuestion` in Claude Code, `request_user_input` in Codex; plain numbered options in chat if neither exists), up to four questions per call, factual before visual.
 
 **Factual first.** Who arrives, what they must do, what they must believe, what they use instead
 today, what content is non-negotiable, what real assets exist. These constrain the design. Asking

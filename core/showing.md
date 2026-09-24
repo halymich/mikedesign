@@ -19,13 +19,13 @@ Climb down only when the rung above genuinely does not apply. Check the tool exi
 reaching for it, and fall to the next rung quietly rather than erroring at the user.
 
 **1. The real project, running.** If the project has a dev server, start it and hand over the URL.
-Write `.claude/launch.json` if it is missing. Reviewing the actual thing beats reviewing a copy of
+In Claude Code, write `.claude/launch.json` if it is missing; in Codex, start the server and open the URL in the browser tool. Reviewing the actual thing beats reviewing a copy of
 it, because the copy cannot show you a CSS conflict, a font that failed to load, or the way the
 nav behaves at 900px.
 
 **2. A published artifact.** For work not yet wired into a project: the three `system` concepts, an
-`illustrate` drawing, a `copy` before-and-after. Self-contained HTML on a private page, which
-means it opens on a phone, which means the user can look at a mobile layout on a mobile.
+`illustrate` drawing, a `copy` before-and-after. Self-contained HTML on a private page (a Claude Artifact in Claude Code; in Codex, a preview deploy or
+any private link the project already uses), which means it opens on a phone, which means the user can look at a mobile layout on a mobile.
 
 **3. The simulator or emulator**, for native targets. Open the live panel before you build, not
 after, so the user watches it come up rather than waiting for a screenshot.
@@ -44,7 +44,7 @@ Showing without stopping is just a louder report. A gate is: show, then stop.
 1. **Show it.** Link first, before any explanation.
 2. **Say what to look at.** Name the two or three decisions you actually want judged, and say which
    one you are least sure about. "Everything look OK?" gets "yes" and teaches you nothing.
-3. **Ask, and wait.** `AskUserQuestion`, with options that mean something: approve as built, a
+3. **Ask, and wait.** Use the structured question feature, with options that mean something: approve as built, a
    specific named change, and a real alternative direction. "Looks good / not quite" is not a
    question, it is a formality.
 4. **Write the answer down.** Feedback goes into `.mikedesign/brief-<surface>.md`, so the next
@@ -66,7 +66,7 @@ enforces nothing. Proportionality is what keeps the gates worth respecting.
 
 ## When there is nobody to ask
 
-Scheduled runs, headless runs, and any context without an interactive channel. `AskUserQuestion`
+Scheduled runs, headless runs, and any context without an interactive channel. Interactive questions
 cannot work there.
 
 Never fabricate the approval. Build to the brief, publish the artifact anyway, and lead the report
