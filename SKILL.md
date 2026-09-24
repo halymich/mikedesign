@@ -16,8 +16,8 @@ reason, and neither is "that is the convention".
 
 **If the user named a command, run it. Skip this step entirely.**
 
-If this skill loaded without an explicit command, the user has not confirmed they want it. Call
-`AskUserQuestion` once, offering the two or three commands that actually fit their request, with
+If this skill loaded without an explicit command, the user has not confirmed they want it. Ask once, using
+your tool's structured question feature (`AskUserQuestion` in Claude Code, `request_user_input` in Codex; plain numbered options in chat if neither exists), offering the two or three commands that actually fit their request, with
 a short reason each, plus the option to skip mikedesign for this task. Do not start work, do not
 read the project, do not ask a second routing question. One question, then act on the answer.
 
@@ -33,7 +33,7 @@ recorded as an assumption. `scripts/brief.mjs` enforces this mechanically: it wr
 Do not hand-maintain the assumption list, and never open a report with the work when there are
 assumptions to lead with.
 
-Ask in `AskUserQuestion` batches of up to four, factual questions before visual ones. When two
+Ask in batches of up to four, factual questions before visual ones. When two
 readings of a request would produce materially different designs, that is a question, not a
 judgment call.
 
