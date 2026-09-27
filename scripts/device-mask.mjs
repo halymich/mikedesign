@@ -66,6 +66,15 @@ if (existsSync(profile)) {
   };
   W = num('mainScreenWidth'); H = num('mainScreenHeight'); scale = num('mainScreenScale') || 1;
 }
+// Newer Xcode releases dropped mainScreenScale from profile.plist and carry it
+// in capabilities.plist instead. Falling through to 1 there repeats the exact
+// 3x-too-big failure described above, so read the new home before giving up.
+const caps = join(res, 'capabilities.plist');
+if (scale === 1 && existsSync(caps)) {
+  const conv = spawnSync('plutil', ['-convert', 'xml1', '-o', '-', caps], { encoding: 'utf8' });
+  const hit = conv.status === 0 && conv.stdout.match(/<key>ArtworkDeviceScaleFactor<\/key>\s*<(?:integer|real)>([\d.]+)</);
+  if (hit) scale = Number(hit[1]);
+}
 
 // The screen outline is the PDF whose MediaBox equals the screen size. Other
 // PDFs in the bundle (sensor bars and so on) are a different shape, so match on

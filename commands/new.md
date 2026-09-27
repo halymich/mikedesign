@@ -51,7 +51,9 @@ the one at the end.
 
 ## 5. Build
 
-Load [../core/craft-floor.md](../core/craft-floor.md) and the matching platform file. Build the
+Load [../core/craft-floor.md](../core/craft-floor.md) and the matching platform file, plus
+[../core/ui.md](../core/ui.md) when the surface is `operate`. Hand the words to mikecopy (see
+"Words" in `SKILL.md`). Build the
 whole surface: real copy, real states, responsive, keyboard reachable, empty and error cases
 handled. A surface that only works with placeholder content is not finished.
 
@@ -61,7 +63,8 @@ has, that is usually the signal it should be a mockup, a diagram or a demonstrat
 
 ## 6. Verify
 
-Render, collect, lint, screenshot desktop and mobile, read the screenshots. Fix everything one
+Render, collect, lint, measure if it is product UI, screenshot desktop and mobile, read the
+screenshots. Fix everything one
 round shows, confirm with at most one more round, then stop. Open-ended self-review costs the
 user money and finds less than one careful look.
 

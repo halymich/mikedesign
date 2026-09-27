@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bookings</title>
+<style>
+:root{--ground:#faf8f4;--ink:#1d1b18;--muted:#57524a;--accent:#0b5d4b}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 Georgia,serif}
+main{max-width:40rem;margin:0 auto;padding:1rem}
+h1{font-size:1.953rem;line-height:1.1;margin:0 0 1rem}
+.card{background:#fff;border-radius:12px;padding:1rem;margin-bottom:1rem;box-shadow:0 2px 6px rgb(0 0 0/.08)}
+button{font:inherit;min-height:44px;padding:0 1rem;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff}
+button:active{transform:scale(.97)}
+.detail{color:var(--muted)}
+img{width:96px;height:64px;border-radius:6px;background:#ddd;display:block}
+</style></head>
+<body><main>
+<h1>Your bookings</h1>
+<section class="card">
+  <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="96" height="64" alt="Hotel Toronto front entrance">
+  <h2 style="font-size:1.25rem;margin:.5rem 0">Hotel Toronto, 3 nights</h2>
+  <button aria-expanded="false" aria-controls="d1" onclick="const d=document.getElementById('d1');const o=this.getAttribute('aria-expanded')==='true';this.setAttribute('aria-expanded',String(!o));d.hidden=o">Price history</button>
+  <p id="d1" class="detail" hidden>Checked every six hours. Lowest so far: $289.</p>
+</section>
+</main></body></html>

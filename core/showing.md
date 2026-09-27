@@ -24,7 +24,7 @@ it, because the copy cannot show you a CSS conflict, a font that failed to load,
 nav behaves at 900px.
 
 **2. A published artifact.** For work not yet wired into a project: the three `system` concepts, an
-`illustrate` drawing, a `copy` before-and-after. Self-contained HTML on a private page (a Claude Artifact in Claude Code; in Codex, a preview deploy or
+`illustrate` drawing, a copy before-and-after from mikecopy. Self-contained HTML on a private page (a Claude Artifact in Claude Code; in Codex, a preview deploy or
 any private link the project already uses), which means it opens on a phone, which means the user can look at a mobile layout on a mobile.
 
 **3. The simulator or emulator**, for native targets. Open the live panel before you build, not

@@ -11,6 +11,10 @@ because the moment you start editing you begin defending what you already wrote.
 node $S/lint.mjs --rendered <scratch.json> --source <target> --design .mikedesign/DESIGN.md
 ```
 
+On an `operate` surface, also run `measure.mjs` per [../core/ui.md](../core/ui.md) and put the
+targets table in the backlog: a missed target is a P0 when it blocks a task (a control that cannot
+be reached by keyboard, text that fails contrast) and a P1 otherwise.
+
 Get real coverage. A critique built on source scanning alone has not checked colour, typeface,
 shadow or layout, and must say so rather than implying a clean bill.
 
@@ -27,7 +31,8 @@ mobile, then actually read the screenshots against
 - Follow the sequence. Does the surface answer the visitor's questions in the order they arise?
 - Find the weakest section, name why it is weakest, and say what it should carry instead.
 - Check the states nobody demos: empty, error, loading, longest plausible content.
-- Check the copy against the product's own language, not category language.
+- Check the copy against the product's own language, not category language. Run mikecopy's
+  linter over the page's source strings too, when it is installed.
 
 ## 3. Check for drift
 

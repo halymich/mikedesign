@@ -1,0 +1,26 @@
+name: verify
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: mikedesign
+      # The words are checked by mikecopy's rules, found as a sibling folder,
+      # exactly as they are when both skills are installed side by side.
+      - uses: actions/checkout@v4
+        with:
+          repository: halymich/mikecopy
+          path: mikecopy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - run: bash mikedesign/scripts/verify.sh
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}

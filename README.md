@@ -1,6 +1,6 @@
 # mikedesign
 
-A design skill for Claude Code and Codex. One skill, seven commands, and a rule set that is enforced by
+A design skill for Claude Code and Codex. One skill, six commands, and a rule set that is enforced by
 scripts rather than by hoping the model remembers.
 
 It exists because design guidance written as prose degrades. Models skim it, and under time
@@ -12,8 +12,15 @@ be checked.
 
 ```bash
 git clone https://github.com/halymich/mikedesign.git ~/.claude/skills/mikedesign
+git clone https://github.com/halymich/mikecopy.git ~/.claude/skills/mikecopy
 ln -s ~/.claude/skills/mikedesign ~/.agents/skills/mikedesign   # Codex
+ln -s ~/.claude/skills/mikecopy ~/.agents/skills/mikecopy       # Codex
 ```
+
+[mikecopy](https://github.com/halymich/mikecopy) writes the words. mikedesign hands it every
+headline, label, empty state and email, and loads its rules to check the copy on rendered pages.
+Installed as a sibling folder, it is found automatically. Without it mikedesign still works, and
+its linter says plainly that the words were not checked.
 
 Node is the only dependency, and both tools already require it. Nothing to build, nothing to
 configure.
@@ -21,7 +28,7 @@ configure.
 To have the agent reach for it automatically, add a line to your global `AGENTS.md` (or `CLAUDE.md`):
 
 ```
-Design decisions (visual identity, layout, styling, interface copy, illustration) go through the
+Design decisions (visual identity, layout, styling, product UI, illustration) go through the
 `mikedesign` skill, never ad hoc. If I did not name a command, ask me once to confirm and
 route. Mechanical changes where I already specified the value are routine calls and proceed
 directly.
@@ -59,7 +66,6 @@ critique files are regenerable and belong in `.gitignore`.
 | `new <surface>` | Builds a new page or screen against that system |
 | `refine <target>` | Iterates on existing work without redesigning it |
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog |
-| `copy <target>` | Writes or cuts the words the product ships: interface, marketing, articles, email, store |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams |
 | `screenshots` | App Store and Play Store listing panels and app preview videos |
 
@@ -78,14 +84,41 @@ a mockup or a demonstration, never smaller type.
 defaults, gradient text, eyebrow labels (banned outright, at write time and again in the linter,
 measured as geometry so sentence case and wrapper divs do not escape), emoji as icons, halo
 shadows, default typefaces as the
-display voice, fabricated testimonials and metrics, filler phrasing. In writing: negative
-parallelism, essay transitions, brochure adjectives, endings that gesture at significance, and
-raw model output left in the copy. Hard rules gate. Advisory rules report and never block,
+display voice, glass on panels that float over nothing. The writing tells (negative parallelism,
+brochure adjectives, fabricated metrics, raw model output) live in mikecopy and are checked on the
+rendered page when it is installed. Hard rules gate. Advisory rules report and never block,
 because a strict linter that cries wolf gets switched off.
 
 **Show the work.** Every command that produces something a person could look at ends by handing
 them a link they can open, then stops and asks. Verification is evidence for the model; showing
 is evidence for the user, and a clean lint has never meant the design was any good.
+
+## Product UI is measured, not admired
+
+Anything a person uses to get something done (an app screen, a bookings page, settings, a
+dashboard) is an `operate` surface, and loads `core/ui.md` automatically. It holds product UI to
+targets that are measured in a real Chrome on a slowed mid-range phone profile and on desktop:
+
+| Target | Default |
+|---|---|
+| Tap response (INP) | 200 ms or less |
+| Layout shift (CLS) | 0.05 or less |
+| JavaScript on first load | 150 KB compressed or less |
+| Font files on first load | 2 or fewer |
+| Accessibility | WCAG 2.2 AA, zero axe-core violations |
+
+```bash
+node scripts/measure.mjs http://localhost:3000/bookings --tap "#price-history" --design .mikedesign/DESIGN.md
+```
+
+Misses are reported with their numbers, and the owner decides whether one blocks. axe-core is
+pinned by version and hash, and a changed file on the CDN is refused rather than run.
+
+The same file sets the visual language for product UI: a major third type scale (1.25) that the
+linter checks, variable fonts doing hierarchy through weight and optical size, tactile texture and
+pressed states, and glass as a tool for exactly one job, a layer over moving content. On iOS that
+means Apple's own materials. None of these is a default look; each product records where it uses
+them.
 
 ## Checking the rendered page, not the source
 
@@ -206,6 +239,8 @@ deliberately simple: `border-radius` for the size, `corner-shape` for the shape.
 Edit `data/rules.json`. One entry, and every command inherits it. That is the whole maintenance
 story, and it is the reason this is a couple of dozen files instead of eighty.
 
+Writing tells go in mikecopy's `data/rules.json` instead, with a line in its `fixtures/slop.md`.
+
 Add a trigger line to `fixtures/slop.html` at the same time. `scripts/verify.sh` asserts that
 every declared rule catches its own fixture, so a rule with no fixture fails the suite, and a rule
 that silently stopped matching cannot hide.
@@ -214,14 +249,6 @@ A rule that depends on knowing an element's role needs two patterns. `pattern` r
 rendered text, where the role is already known. `sourcePattern` runs against raw files, where it
 is not, so it has to find the role in the markup. Without that split a headline rule fires on
 every paragraph of every article.
-
-## Why not the humanizer skill
-
-Deliberate overlap. `humanizer` derives from Wikipedia's signs-of-AI-writing guide, and its target
-register is encyclopedic neutrality. That is the right goal for an encyclopedia and the wrong one
-for a landing page, where the fix for slop is more voice rather than less. `core/voice.md` is
-built around capturing a specific person's voice and then enforcing it, which is a different job.
-Use both if you like; do not expect them to agree.
 
 ## Licence
 
