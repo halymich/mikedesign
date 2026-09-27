@@ -129,8 +129,12 @@ async function launch() {
   const cleanup = async () => {
     const gone = new Promise((r) => { if (proc.exitCode !== null) r(); else proc.once('exit', r); });
     const t0 = Date.now();
-    try { proc.kill(); } catch {}
-    await Promise.race([gone, sleep(10000)]);
+    // Killing the browser process leaves its helper processes (network,
+    // storage) writing into the profile on Linux, and the delete then fails
+    // with ENOTEMPTY. Asking it to close shuts the helpers down first; the
+    // kill is only a fallback for a browser that ignores the request.
+    const exited = await Promise.race([gone.then(() => true), sleep(5000).then(() => false)]);
+    if (!exited) { try { proc.kill(); } catch {} await Promise.race([gone, sleep(5000)]); }
     if (process.env.MIKEDESIGN_DEBUG) console.error(`measure: chrome exit took ${Date.now() - t0} ms (exitCode ${proc.exitCode}, signal ${proc.signalCode})`);
     // Helper processes can still be writing into the profile for a moment
     // after the browser exits (seen on Linux), so retry rather than race them.
@@ -386,6 +390,7 @@ async function measure(name, axeSrc) {
   } catch (e) {
     result.error = e.message;
   } finally {
+    try { await cdp.send('Browser.close'); } catch {}
     cdp.close();
     await chrome.cleanup();
   }
