@@ -1,9 +1,9 @@
 ---
 name: mikedesign
-description: Use for any design decision on any interface, and for any words that interface ships. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Also writes and edits the product's copy: interface strings, marketing pages, blog posts and articles, transactional and lifecycle email, push messages, and store listings. Also use when a design or a piece of writing feels generic, templated or AI-generated and needs to stop feeling that way. Not for backend work.
-version: 1.5.0
+description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Product UI (anything a person uses to get something done, like an app screen or a bookings page) is held to measured targets for tap response, layout stability, page weight and WCAG 2.2 AA, with a major third type scale and glass and tactile texture as deliberate tools. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. The words on a surface are written by the mikecopy skill, which this skill hands them to. Not for backend work.
+version: 2.0.0
 user-invocable: true
-argument-hint: "[system|new|refine|critique|copy|illustrate|screenshots] [target]"
+argument-hint: "[system|new|refine|critique|illustrate|screenshots] [target]"
 license: MIT
 ---
 
@@ -52,7 +52,7 @@ No eyebrow, no kicker, no small uppercase label, no coloured pill, in any case o
 the most recognizable tell of generated design and it is filler every time. Real information
 above a heading is allowed only as the component it actually is, and only in four cases: a
 breadcrumb of working links, a step counter, a byline, a date or chapter number. The rule is in
-[core/craft-floor.md](core/craft-floor.md) for building and [core/voice.md](core/voice.md) for
+[core/craft-floor.md](core/craft-floor.md) for building and in mikecopy's voice guide for
 writing, and the linter measures it as geometry, so case and class name do not get you past it.
 
 ## Setup
@@ -73,7 +73,6 @@ move rather than inventing one silently inside another command.
 | `new <surface>` | Build a new page or screen against the system | [commands/new.md](commands/new.md) |
 | `refine <target>` | Iterate on existing work, preserving identity | [commands/refine.md](commands/refine.md) |
 | `critique <target>` | Read-only diagnosis, scored, writes a findings backlog | [commands/critique.md](commands/critique.md) |
-| `copy <target>` | Write or cut the words the product ships: interface, marketing, articles, email, store | [commands/copy.md](commands/copy.md) |
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams | [commands/illustrate.md](commands/illustrate.md) |
 | `screenshots` | App Store and Play Store listing panels and app previews | [commands/screenshots.md](commands/screenshots.md) |
 
@@ -84,8 +83,23 @@ code, and the platform file that matches the target:
 
 Load [core/showing.md](core/showing.md) in every command that produces something a person could
 look at, which is all of them except when a run is purely diagnostic. For interview mechanics,
-load [core/inquiry.md](core/inquiry.md). For anything that writes words, load
-[core/voice.md](core/voice.md).
+load [core/inquiry.md](core/inquiry.md).
+
+**Product UI loads itself.** Every `operate` surface loads [core/ui.md](core/ui.md) on top of the
+craft floor: measured targets for tap response, layout stability, weight and accessibility, the
+type scale, and when glass and texture are the right tool. No command to remember. A paywall or
+onboarding screen inside an app loads it too, because a person is interacting with it.
+
+## Words
+
+The words on a surface are written by the **mikecopy** skill, in the voice recorded at
+`brand.voice` in `DESIGN.md`. When a command needs copy (headlines, labels, empty states, errors,
+email), build the structure, then load mikecopy's `SKILL.md` and its `modes/product.md` and write
+the words under its rules, without asking the user a second routing question. Asking to "make
+the copy better" on its own is mikecopy's job, not this skill's.
+
+If mikecopy is not installed, write serviceable interface copy yourself, keep the voice record
+intact, and say in the report that the words were not checked. The linter says the same.
 
 ## Surface types
 
@@ -127,10 +141,22 @@ The skill writes into the user's project, never into itself:
       "components": ["button", "link", "input", "card", "nav"],
       "deferred": ["table", "modal", "toast"],
       "allow": []
+    },
+    "ios": {
+      "platform": "ios",
+      "surfaceType": "operate",
+      "typeScale": { "base": 16, "ratio": 1.25 },
+      "uiBudgets": { "inpMs": 200, "cls": 0.05, "jsKb": 150, "fontFiles": 2 },
+      "glass": ["tab bar over the photo grid"],
+      "texture": []
     }
   }
 }
 ```
+
+`typeScale` and `uiBudgets` apply to product UI; the values shown are the defaults. `glass` and
+`texture` name the surfaces where those tools were chosen, so later commands use them there and
+nowhere else.
 
 `allow` lists rule ids the brief explicitly overrode. Anything in it stops firing, so an entry
 must be traceable to something the user actually asked for.
@@ -149,8 +175,8 @@ produces a system that cannot be built on one of them.
 
 Voice belongs at brand level for the same reason the palette does. A product whose site and app
 sound like different companies has the same problem as one whose site and app are different
-colours, and a single recorded voice is what stops that. See [core/voice.md](core/voice.md) for
-what a usable profile contains.
+colours, and a single recorded voice is what stops that. mikecopy owns what a usable profile
+contains and reads it from this same file.
 
 So **brand sits at the top level once, and each target overrides only what genuinely differs.**
 One copy of the palette means it cannot drift between the app and the site. Target values extend
@@ -181,7 +207,12 @@ Never report a design as done on the strength of having written it. Evidence, in
    summary: an `error` field means the sink was not running and nothing was written.
 4. **Lint.**
    `node $S/lint.mjs --rendered <scratch.json> --source <target-dir> --design .mikedesign/DESIGN.md`
-5. **Look.** Screenshot desktop and mobile, and actually read the screenshots. The linter cannot
+5. **Measure, on product UI.** For an `operate` surface in a browser:
+   `node $S/measure.mjs <url> --tap "<main action selector>" --design .mikedesign/DESIGN.md`.
+   It measures tap response, layout shift, weight and WCAG 2.2 AA on a slowed phone profile and
+   on desktop. A miss is reported with its number for the user to decide; it does not block on
+   its own. See [core/ui.md](core/ui.md).
+6. **Look.** Screenshot desktop and mobile, and actually read the screenshots. The linter cannot
    see composition, rhythm or whether the thing is any good.
 
 Exit 0 is clean, 1 means hard findings, 2 means no verdict was possible. **Exit 2 is not a
@@ -208,5 +239,5 @@ warrants, and what to do when there is nobody to ask.
 ## Reporting
 
 End every run with, in this order: the assumptions on record, what changed in plain terms, what
-the verification actually showed (with the coverage numbers), and what needs the user's
-decision. If nothing needs them, say so explicitly.
+the verification actually showed (with the coverage numbers, and for product UI the table of
+targets met and missed), and what needs the user's decision. If nothing needs them, say so explicitly.

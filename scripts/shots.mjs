@@ -266,6 +266,8 @@ if (process.argv[2] === 'render') {
       const outPath = join(localeOut, `${n}_${device}.png`);
       const res = spawnSync(chrome, [
         '--headless=new',
+        // CI containers run Chrome without the kernel features its sandbox needs.
+        ...(process.env.CI ? ['--no-sandbox'] : []),
         '--disable-gpu',
         '--hide-scrollbars',
         '--force-device-scale-factor=1',

@@ -20,6 +20,28 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RULES = JSON.parse(readFileSync(join(HERE, '..', 'data', 'rules.json'), 'utf8'));
 
+// The words are mikecopy's job, and so are the rules about them. Load its text
+// rules when it is installed beside this skill (or where MIKECOPY_HOME says), so
+// the copy a visitor actually reads is checked by the same rules the writer used.
+// Without it the design checks still run, and the report says the words did not.
+const TEXT = (() => {
+  const candidates = [
+    process.env.MIKECOPY_HOME && join(process.env.MIKECOPY_HOME, 'data', 'rules.json'),
+    join(HERE, '..', '..', 'mikecopy', 'data', 'rules.json'),
+  ].filter(Boolean);
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    try {
+      const rules = JSON.parse(readFileSync(path, 'utf8')).rules.filter((r) => r.scope === 'text');
+      return { loaded: true, path, count: rules.length, rules };
+    } catch (e) {
+      return { loaded: false, path, error: e.message, count: 0, rules: [] };
+    }
+  }
+  return { loaded: false, path: null, count: 0, rules: [] };
+})();
+RULES.rules.push(...TEXT.rules);
+
 /* ---------- args ---------- */
 
 const argv = process.argv.slice(2);
@@ -52,7 +74,7 @@ if (!opt.rendered && opt.source.length === 0) {
  * read. Parsing prose for a palette is guesswork; a fenced block is a contract.
  */
 function loadDesign(path, wantTarget) {
-  const empty = { palette: [], fonts: {}, allow: [], budgetOverrides: {}, surfaceType: null, found: false, targets: [], target: null };
+  const empty = { palette: [], fonts: {}, allow: [], budgetOverrides: {}, surfaceType: null, typeScale: null, found: false, targets: [], target: null };
   if (!path || !existsSync(path)) return empty;
   const md = readFileSync(path, 'utf8');
   const m = md.match(/```json\s*([\s\S]*?)```/);
@@ -76,6 +98,7 @@ function loadDesign(path, wantTarget) {
     allow: brand.allow || [],
     budgetOverrides: brand.budgetOverrides || {},
     surfaceType: brand.surfaceType || null,
+    typeScale: brand.typeScale || null,
     found: true,
     targets: targets ? Object.keys(targets) : [],
     target: null,
@@ -105,6 +128,7 @@ function loadDesign(path, wantTarget) {
     allow: [...base.allow, ...(t.allow || [])],
     budgetOverrides: { ...base.budgetOverrides, ...(t.budgetOverrides || {}) },
     surfaceType: t.surfaceType || base.surfaceType,
+    typeScale: t.typeScale || base.typeScale,
   };
 }
 const design = loadDesign(opt.design, opt.target);
@@ -266,6 +290,9 @@ function runRendered(data) {
 
   for (const rule of RULES.rules) {
     if (rule.scope !== 'rendered') continue;
+    // Some rules only mean something on one kind of surface. A type scale is a
+    // product UI contract; a landing page may legitimately jump off it for a hero.
+    if (rule.surfaces && !rule.surfaces.includes(surface) && !(rule.test.type === 'type-scale' && design.typeScale)) continue;
     const t = rule.test;
 
     if (t.type === 'color-band') {
@@ -286,7 +313,8 @@ function runRendered(data) {
     else if (t.type === 'computed') {
       for (const el of els) {
         const ok = t.all.every((cond) => new RegExp(cond.match, 'i').test(el.styles[cond.prop] || ''));
-        if (ok) report(rule, locator(el), t.all.map((c) => `${c.prop}: ${el.styles[c.prop]}`).join(' | '));
+        const excluded = (t.none || []).some((cond) => new RegExp(cond.match, 'i').test(el.styles[cond.prop] || ''));
+        if (ok && !excluded) report(rule, locator(el), t.all.map((c) => `${c.prop}: ${el.styles[c.prop]}`).join(' | '));
       }
     }
 
@@ -388,6 +416,29 @@ function runRendered(data) {
       }
     }
 
+    else if (t.type === 'type-scale') {
+      // Every text size should sit on the declared scale: base x ratio^n. Off-scale
+      // sizes are how a system drifts into three sizes 2px apart. Reported once per
+      // size, with how often it occurs, because one finding per element is noise.
+      const base = (design.typeScale && design.typeScale.base) || t.base;
+      const ratio = (design.typeScale && design.typeScale.ratio) || t.ratio;
+      const off = new Map();
+      for (const el of els) {
+        if (!el.text) continue;
+        const size = px(el.styles.fontSize);
+        if (!size) continue;
+        const n = Math.round(Math.log(size / base) / Math.log(ratio));
+        const expected = base * Math.pow(ratio, n);
+        if (Math.abs(size - expected) <= Math.max(t.tolerancePx, expected * t.tolerancePct)) continue;
+        const k = String(size);
+        if (!off.has(k)) off.set(k, { n: 0, el, expected });
+        off.get(k).n++;
+      }
+      for (const [size, o] of off) {
+        report(rule, locator(o.el), `${size}px on ${o.n} element(s); nearest step on ${base}px x ${ratio} is ${Math.round(o.expected * 100) / 100}px`);
+      }
+    }
+
     else if (t.type === 'text-pattern') {
       // rendered-scope text rules (e.g. section numbering) need the DOM
       const re = new RegExp(t.pattern, t.flags || '');
@@ -398,7 +449,7 @@ function runRendered(data) {
   // text-scope rules also run over rendered copy, which is the text a visitor
   // actually reads. Source may hold strings that never ship.
   for (const rule of RULES.rules) {
-    if (rule.scope !== 'text' || rule.test.type !== 'text-pattern') continue;
+    if (rule.scope !== 'text' || rule.test.type !== 'text-pattern' || rule.test.sourceOnly) continue;
     const re = new RegExp(rule.test.pattern, rule.test.flags || '');
     for (const el of els) {
       if (!el.text) continue;
@@ -469,6 +520,7 @@ function runSource(paths) {
   if (files.length === 0) return;
 
   const textRules = RULES.rules.filter((r) => r.scope === 'text' && r.test.type === 'text-pattern');
+  const sourceRules = RULES.rules.filter((r) => r.scope === 'source' && r.test.type === 'source-pattern');
   for (const file of files) {
     let content;
     try { content = readFileSync(file, 'utf8'); } catch { coverage.source.skipped++; continue; }
@@ -486,14 +538,33 @@ function runSource(paths) {
       });
     }
 
+    for (const rule of sourceRules) {
+      if (!rule.test.exts.includes(extname(file))) continue;
+      const re = new RegExp(rule.test.pattern, rule.test.flags || '');
+      lines.forEach((line, i) => {
+        if (/^\s*\/\//.test(line)) return;
+        const m = line.match(re);
+        if (m) report(rule, `${file}:${i + 1}`, m[0].trim(), line);
+      });
+    }
+
+    // In code, comments are notes to developers, not copy anyone reads. Linting
+    // them buried a real app's six shipped strings under a hundred comment hits,
+    // which teaches people to ignore the rule. Whole-line comments are skipped,
+    // and a trailing " // note" is cut; "//" inside a URL has no space before it.
+    const CODE = new Set(['.swift', '.kt', '.js', '.ts', '.jsx', '.tsx', '.css', '.vue', '.svelte']);
+    const isCode = CODE.has(extname(file));
+    const prose = (line) => (isCode ? line.replace(/\s\/\/\s.*$/, '') : line);
+    const commentLine = (line) => isCode && /^\s*(\/\/|\/\*|\*)/.test(line);
+
     for (const rule of textRules) {
       // Rendered text arrives with its role already known, so a rule can match bare prose.
       // Raw source does not, so a role-specific rule declares sourcePattern to find the role
       // in the markup itself. Without it a headline rule fires on every paragraph.
       const re = new RegExp(rule.test.sourcePattern || rule.test.pattern, rule.test.flags || '');
       lines.forEach((line, i) => {
-        if (fenced.has(i)) return;
-        const m = line.match(re);
+        if (fenced.has(i) || commentLine(line)) return;
+        const m = prose(line).match(re);
         if (m) report(rule, `${file}:${i + 1}`, m[0].trim(), line);
       });
     }
@@ -540,6 +611,7 @@ if (opt.json) {
     partial,
     surface,
     coverage,
+    text: { loaded: TEXT.loaded, rules: TEXT.count, path: TEXT.path, error: TEXT.error || null },
     design: { loaded: design.found, parseError: design.parseError || null, allow: [...allowed], target: design.target, targets: design.targets, platform: design.platform || null },
     findings,
   }, null, 2));
@@ -565,6 +637,8 @@ if (coverage.rendered.ran) {
 if (coverage.source.ran) line(`  source:   ${coverage.source.files} files read, ${coverage.source.skipped} skipped`);
 else line('  source:   not run');
 
+if (TEXT.loaded) line(`  words:    ${TEXT.count} text rules from mikecopy`);
+else line(`  words:    NOT CHECKED. mikecopy ${TEXT.error ? `rules unreadable (${TEXT.error})` : 'is not installed beside this skill'}, so copy tells were not looked for.`);
 if (design.found && design.parseError) line(`  design:   loaded but config block unreadable (${design.parseError})`);
 else if (design.found) {
   const tgt = design.target

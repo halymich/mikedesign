@@ -37,10 +37,32 @@ echo "mikedesign regression suite"
 echo
 
 echo "1. Every rule catches its own fixture"
-DECLARED=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("data/rules.json","utf8")).rules.length)')
-FIRED=$(rules --rendered "$SLOP" --source fixtures/slop.html)
-# declared rules + the two budget ids (headline, subhead)
-check "all declared rules fire" "$FIRED" "$((DECLARED + 2))"
+# Rules restricted to one surface type or to native source have their own
+# tests in section 10; the slop fixture is a persuade page in HTML.
+DECLARED=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("data/rules.json","utf8")).rules.filter(r=>r.scope==="rendered"&&!r.surfaces).length)')
+DESIGNFIRED=$(node scripts/lint.mjs --rendered "$SLOP" --source fixtures/slop.html --json 2>/dev/null \
+  | node -e 'const own=new Set(require("./data/rules.json").rules.map(r=>r.id));let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(new Set(j.findings.map(f=>f.id).filter(id=>own.has(id)||id.startsWith("budget-"))).size)})')
+# declared rendered rules + the two budget ids (headline, subhead)
+check "all design rules fire" "$DESIGNFIRED" "$((DECLARED + 2))"
+
+# The words belong to mikecopy. Installed beside this skill, its rules check the
+# copy on the page; missing, the design checks still run and the report says the
+# words were not checked, rather than implying they were.
+MC="${MIKECOPY_HOME:-../mikecopy}"
+if [ -f "$MC/data/rules.json" ]; then
+  TXT=$(node scripts/lint.mjs --rendered "$SLOP" --json 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.text.loaded&&j.findings.some(f=>f.id==="em-dash-in-copy")&&j.findings.some(f=>f.id==="ai-vocabulary")?"yes":"no")})')
+  check "mikecopy text rules check the page" "$TXT" "yes"
+else
+  printf '  \033[33mSKIP\033[0m  mikecopy text rules (not installed beside this skill)\n'
+fi
+LONE=$(mktemp -d); mkdir -p "$LONE/md"; cp -R scripts data "$LONE/md/"
+LONEOUT=$(node "$LONE/md/scripts/lint.mjs" --rendered "$SLOP" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.text.loaded+"/"+j.findings.some(f=>f.id==="em-dash-in-copy")+"/"+j.findings.some(f=>f.id==="gradient-text"))})')
+check "without mikecopy: design runs, words reported unchecked" "$LONEOUT" "false/false/true"
+LONEHUMAN=$(node "$LONE/md/scripts/lint.mjs" --rendered "$SLOP" 2>/dev/null || true)
+case "$LONEHUMAN" in *"words:    NOT CHECKED"*) ok "the human report says so";; *) bad "the human report says so";; esac
+rm -rf "$LONE"
 
 echo
 echo "2. The clean fixture stays clean (no false positives)"
@@ -211,7 +233,7 @@ html,body{margin:0;padding:0;width:400px;height:400px;background:#fff}
 div{width:400px;height:400px;background:#000;border-radius:100px;$SHAPE}
 </style></head><body><div></div></body></html>
 HTML
-    "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+    "$CHROME" --headless=new ${CI:+--no-sandbox} --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
       --window-size=400,400 --screenshot="$S/$variant.png" "file://$S/$variant.html" >/dev/null 2>&1
   done
   if [ -f "$S/super.png" ] && [ -f "$S/circle.png" ]; then
@@ -231,6 +253,88 @@ HTML
   rm -rf "$R"
 else
   printf '  \033[33mSKIP\033[0m  render tests (no Chrome found; set CHROME_PATH)\n'
+fi
+
+echo
+echo "10. Product UI checks"
+U=$(mktemp -d)
+node -e '
+const el=(i,o)=>Object.assign({i,tag:"DIV",cls:"",id:"",text:"",role:"body",prevTag:"",nextTag:"",nextIsHeadline:false,above:null,isLink:false,inBreadcrumb:false,timeTag:false,parentTag:"BODY",parentSig:"p"+i,sig:"s"+i,x:0,y:0,w:300,h:40,focusable:false,childCount:0},o);
+const st=(o)=>Object.assign({color:"rgb(20, 20, 20)",backgroundColor:"rgb(250, 248, 244)",backgroundImage:"none",webkitBackgroundClip:"border-box",backdropFilter:"none",boxShadow:"none",fontFamily:"Fraunces",fontSize:"16px",fontWeight:"400",textTransform:"none",borderRadius:"0px",filter:"none",borderTopColor:"rgb(20, 20, 20)",borderLeftWidth:"0px",fill:"none",transitionProperty:"all",position:"static"},o);
+const page={ok:true,collector:"mikedesign/1",url:"fixture://ui",viewport:{w:390,h:844},pageBackground:"rgb(250, 248, 244)",pageColor:"rgb(20, 20, 20)",coverage:{scanned:6,kept:6,truncated:false},elements:[
+ el(0,{text:"Bookings",styles:st({fontSize:"25px"})}),
+ el(1,{text:"Toronto hotel",styles:st({fontSize:"20px"})}),
+ el(2,{text:"Checks every six hours",styles:st({fontSize:"16px"})}),
+ el(3,{text:"Updated today",styles:st({fontSize:"12.8px"})}),
+ el(4,{text:"Drop found",styles:st({fontSize:"18px"})}),
+ el(5,{tag:"NAV",text:"Tab bar",styles:st({backdropFilter:"blur(20px)",position:"fixed"})}),
+ el(6,{text:"Glass card",styles:st({backdropFilter:"blur(20px)",position:"relative"})})
+]};
+require("fs").writeFileSync(process.argv[1],JSON.stringify(page));' "$U/ui.json"
+ui() { node scripts/lint.mjs --rendered "$U/ui.json" "$@" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id===process.env.ID).map(f=>f.evidence.split(" ")[0]).join(",")||"none")})'; }
+GLASS=$(node scripts/lint.mjs --rendered "$U/ui.json" --surface operate --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="glass-decoration").map(f=>f.where.match(/"(.*)"/)[1]).join(","))})')
+check "glass flagged on the in-flow card only, not the fixed bar" "$GLASS" "Glass card"
+check "off-scale size caught on product UI"    "$(ID=type-scale-off-ratio ui --surface operate)" "18px"
+check "scale not imposed on a persuade page"   "$(ID=type-scale-off-ratio ui --surface persuade)" "none"
+printf '```json\n{ "brand": { "typeScale": { "base": 16, "ratio": 1.333 } } }\n```\n' > "$U/DESIGN.md"
+check "a declared scale replaces the default"  "$(ID=type-scale-off-ratio ui --surface persuade --design "$U/DESIGN.md")" "25px,20px,12.8px,18px"
+cat > "$U/View.swift" <<'EOF'
+Text("Fixed").font(.system(size: 17))
+Text("Scaled").font(.system(size: 17, relativeTo: .body))
+// Text("Commented").font(.system(size: 12))
+Text("Style").font(.headline)
+EOF
+SW=$(node scripts/lint.mjs --source "$U/View.swift" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="swift-fixed-font-size").map(f=>f.where.split(":").pop()).join(","))})')
+check "fixed Swift font size caught, scaled ones not" "$SW" "1"
+if [ -f "${MIKECOPY_HOME:-../mikecopy}/data/rules.json" ]; then
+  printf '// A comment \xe2\x80\x94 not copy\n/* block \xe2\x80\x94 comment */\nlet url = "https://x.io" // trailing \xe2\x80\x94 note\nText("Shipped \xe2\x80\x94 string")\n' > "$U/Copy.swift"
+  CM=$(node scripts/lint.mjs --source "$U/Copy.swift" --json 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="em-dash-in-copy").map(f=>f.where.split(":").pop()).join(","))})')
+  check "code comments are not copy, shipped strings are" "$CM" "4"
+fi
+rm -rf "$U"
+
+echo
+echo "11. Product UI measurement in a real browser"
+if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
+  PORT=8931
+  node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)})}).listen(+process.argv[1])' $PORT &
+  SRV=$!; sleep 0.5
+  MERR=$(mktemp)
+  mj() { node scripts/measure.mjs "http://127.0.0.1:$PORT/$1" --profile desktop --json 2>>"$MERR"; }
+  GOOD=$(mj good.html); GOODX=$?
+  BAD=$(mj bad.html); BADX=$?
+  jget() { printf '%s' "$1" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log($2)})"; }
+  check "lean, stable, accessible page meets every target" "$GOODX" "0"
+  check "slow tap handler is caught"          "$(jget "$BAD" "j.runs[0].checks.tapResponse.status")" "miss"
+  check "late layout shift is caught"         "$(jget "$BAD" "j.runs[0].checks.layoutShift.status")" "miss"
+  if [ "$(jget "$BAD" "j.axe.error===null")" = "true" ]; then
+    check "missing alt text and label are caught" "$(jget "$BAD" "['image-alt','label'].every(id=>j.runs[0].a11y.some(v=>v.id===id))")" "true"
+  else
+    printf '  \033[33mSKIP\033[0m  accessibility assertions (axe-core unavailable offline)\n'
+  fi
+  check "a miss exits 1, not 0"               "$BADX" "1"
+  # Security: with no --tap it must never touch anything that can write saved
+  # data. The fixture carries a checkbox and a settings switch that also has
+  # aria-expanded, next to one harmless disclosure.
+  check "default taps skip checkboxes and switches" "$(jget "$BAD" "j.runs[0].taps.map(t=>t.what).join(',')")" "button[type=submit]"
+  LEFT=$(ls -d "${TMPDIR:-/tmp}"/mikedesign-measure-* 2>/dev/null | wc -l | tr -d ' ')
+  check "no temporary browser profile left behind" "$LEFT" "0"
+  [ -n "${MIKEDESIGN_DEBUG:-}" ] && cut -c1-200 "$MERR"
+  if [ "$LEFT" != "0" ]; then
+    echo "    diagnostic: chrome processes still running:"; ps -eo pid,ppid,args | grep -i "mikedesign-measure" | grep -v grep | cut -c1-160 | head -5
+    echo "    diagnostic: leftover contents:"; for d in "${TMPDIR:-/tmp}"/mikedesign-measure-*; do ls -la "$d" | head -8; done
+    file "$CHROME" 2>/dev/null | cut -c1-160
+    echo "    diagnostic: measure stderr:"; cut -c1-200 "$MERR"
+  fi
+  node scripts/measure.mjs "http://127.0.0.1:1/nothing" --profile desktop --json >/dev/null 2>&1
+  check "unreachable page is no verdict"      "$?" "2"
+  kill $SRV 2>/dev/null
+else
+  printf '  \033[33mSKIP\033[0m  measurement tests (no Chrome found; set CHROME_PATH)\n'
 fi
 
 echo

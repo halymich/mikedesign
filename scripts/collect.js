@@ -33,6 +33,7 @@
     ['borderLeftWidth', 'border-left-width'],
     ['fill', 'fill'],
     ['transitionProperty', 'transition-property'],
+    ['position', 'position'],
   ];
 
   const DEFAULTISH = {

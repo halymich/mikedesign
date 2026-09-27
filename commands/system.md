@@ -131,9 +131,15 @@ weights, the palette with the role of each colour, spacing scale, radius and dep
 character, voice, and the rules of the illustration style if one exists yet.
 
 Voice belongs at brand level for the same reason the palette does: it spans every target, and one
-copy of it cannot drift between the app and the site. Capture it properly per
-[../core/voice.md](../core/voice.md) rather than writing three adjectives. A profile that says
-"friendly and professional" has decided nothing, and `copy` will not be able to use it.
+copy of it cannot drift between the app and the site. Capture it with the mikecopy skill, which
+records it at `brand.voice`, rather than writing three adjectives. A profile that says "friendly
+and professional" has decided nothing, and mikecopy will not be able to use it.
+
+**For every `operate` target, also record** the type scale (major third on a 16px base unless
+there is a reason, and the reason if not), any change to the product UI targets at `uiBudgets`
+with why, and where glass and texture are used, if anywhere, at `glass` and `texture`. Show glass
+and texture in the concepts where they are proposed, over real content, so the user judges them in
+place. See [../core/ui.md](../core/ui.md).
 
 **Record the alternative each load-bearing value beat.** Not every value: load-bearing means a
 reader would reasonably ask "why that number?" A breakpoint that says why it is not 200px lower

@@ -35,7 +35,8 @@ you would leave, and ask. This is one short gate, not a per-finding conversation
 
 ## 3. Fix
 
-Load [../core/craft-floor.md](../core/craft-floor.md). Work through the findings. Prefer removing
+Load [../core/craft-floor.md](../core/craft-floor.md), and [../core/ui.md](../core/ui.md) for an
+`operate` surface. Work through the findings. Prefer removing
 over adding: most tired interfaces are carrying too much, not too little, and the strongest
 single move available is usually deletion.
 

@@ -49,7 +49,8 @@ const SYSTEM_FIELDS = [
 ];
 
 /*
- * Extra fields for a `copy` brief.
+ * Extra fields for a `copy` brief. Writing now lives in the mikecopy skill;
+ * this set stays so briefs written before the split still check cleanly.
  *
  * Slop is what gets written when nobody decided who is talking. Drafting with
  * the tone and the claims both unsettled means the model fills both from the

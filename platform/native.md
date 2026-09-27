@@ -47,6 +47,34 @@ standard navigation with something bespoke.
 - **System affordances** for the standard cases: share, permissions, purchases, alerts.
   Reimplementing them signals amateurism and usually loses functionality.
 
+## Product UI targets on native
+
+App screens load [../core/ui.md](../core/ui.md). The native versions of its targets, and how each
+one is actually checked, because on native most of them are not measured by a script:
+
+| Target | How it is checked |
+|---|---|
+| Response within 100 ms of touch | Code review of every tap handler: state change and pressed state first, work after, nothing heavy on the main actor. **Not measured**, and the report says so. |
+| Smooth scrolling at the display's full rate | Code review for work in `body` and cell configuration, images decoded off the main thread. **Not measured.** |
+| Dynamic Type to the largest size | Simulator screenshots at the largest accessibility size, checked for truncation and overlap. The linter flags fixed `.system(size:)` fonts. |
+| VoiceOver completes each task | Every control has a label and the right trait; custom tap areas are `Button`s. Checked in code and with the Accessibility Inspector when a build runs. |
+| Dark mode, increased contrast | Simulator screenshots in both. |
+| Glass | System materials and Liquid Glass APIs only, never a hand-built blur. Reduce Transparency is then handled by the system. |
+
+Set the Simulator into each state from the command line rather than tapping through Settings:
+
+```
+xcrun simctl ui booted content_size accessibility-extra-extra-extra-large
+xcrun simctl ui booted appearance dark
+xcrun simctl ui booted increase_contrast enabled
+xcrun simctl ui booted content_size large          # back to default
+xcrun simctl ui booted appearance light
+xcrun simctl ui booted increase_contrast disabled
+```
+
+Profiling tap latency and frame rate with Instruments is out of scope by default. Say in the report
+that those two targets were reviewed in code, not measured.
+
 ## Surface type
 
 Most app screens are `operate`: the visitor is completing a task, and scanability and consistency
