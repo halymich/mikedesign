@@ -132,7 +132,11 @@ async function launch() {
     await Promise.race([gone, sleep(10000)]);
     // Helper processes can still be writing into the profile for a moment
     // after the browser exits (seen on Linux), so retry rather than race them.
-    if (temp) { try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); } catch {} }
+    if (temp) {
+      try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); }
+      catch (e) { console.error(`measure: could not delete temporary profile ${dir}: ${e.message}`); }
+      if (existsSync(dir)) console.error(`measure: temporary profile still present after delete: ${dir} (exitCode ${proc.exitCode}, signal ${proc.signalCode})`);
+    }
   };
   return { proc, wsUrl, cleanup };
 }

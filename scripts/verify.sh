@@ -297,7 +297,8 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   PORT=8931
   node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)})}).listen(+process.argv[1])' $PORT &
   SRV=$!; sleep 0.5
-  mj() { node scripts/measure.mjs "http://127.0.0.1:$PORT/$1" --profile desktop --json 2>/dev/null; }
+  MERR=$(mktemp)
+  mj() { node scripts/measure.mjs "http://127.0.0.1:$PORT/$1" --profile desktop --json 2>>"$MERR"; }
   GOOD=$(mj good.html); GOODX=$?
   BAD=$(mj bad.html); BADX=$?
   jget() { printf '%s' "$1" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log($2)})"; }
@@ -320,6 +321,7 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
     echo "    diagnostic: chrome processes still running:"; ps -eo pid,ppid,args | grep -i "mikedesign-measure" | grep -v grep | cut -c1-160 | head -5
     echo "    diagnostic: leftover contents:"; for d in "${TMPDIR:-/tmp}"/mikedesign-measure-*; do ls -la "$d" | head -8; done
     file "$CHROME" 2>/dev/null | cut -c1-160
+    echo "    diagnostic: measure stderr:"; cut -c1-200 "$MERR"
   fi
   node scripts/measure.mjs "http://127.0.0.1:1/nothing" --profile desktop --json >/dev/null 2>&1
   check "unreachable page is no verdict"      "$?" "2"
