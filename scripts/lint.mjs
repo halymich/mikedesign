@@ -377,6 +377,7 @@ function runRendered(data) {
         if (group.length < t.minRepeats) continue;
         const first = group[0];
         if (first.childCount < 2) continue; // a row of plain <li> is not a card wall
+        if (first.inFigure) continue; // chart points and their tooltips are data
         report(rule, locator(first), `${group.length} siblings share an identical structure`);
       }
     }

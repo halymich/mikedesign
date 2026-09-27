@@ -249,6 +249,8 @@
       h: Math.round(rect.height),
       focusable: focusable(el),
       childCount: el.children.length,
+      // Repeated data points in a chart are the data, not a wall of cards.
+      inFigure: !!(el.closest && el.closest('figure, svg, canvas, [role="img"], [role="figure"]')),
     });
   }
 
