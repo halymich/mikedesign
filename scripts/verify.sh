@@ -316,6 +316,11 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   check "default taps skip checkboxes and switches" "$(jget "$BAD" "j.runs[0].taps.map(t=>t.what).join(',')")" "button[type=submit]"
   LEFT=$(ls -d "${TMPDIR:-/tmp}"/mikedesign-measure-* 2>/dev/null | wc -l | tr -d ' ')
   check "no temporary browser profile left behind" "$LEFT" "0"
+  if [ "$LEFT" != "0" ]; then
+    echo "    diagnostic: chrome processes still running:"; ps -eo pid,ppid,args | grep -i "mikedesign-measure" | grep -v grep | cut -c1-160 | head -5
+    echo "    diagnostic: leftover contents:"; for d in "${TMPDIR:-/tmp}"/mikedesign-measure-*; do ls -la "$d" | head -8; done
+    file "$CHROME" 2>/dev/null | cut -c1-160
+  fi
   node scripts/measure.mjs "http://127.0.0.1:1/nothing" --profile desktop --json >/dev/null 2>&1
   check "unreachable page is no verdict"      "$?" "2"
   kill $SRV 2>/dev/null
