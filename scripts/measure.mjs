@@ -129,8 +129,10 @@ async function launch() {
   const cleanup = async () => {
     const gone = new Promise((r) => { if (proc.exitCode !== null) r(); else proc.once('exit', r); });
     try { proc.kill(); } catch {}
-    await Promise.race([gone, sleep(5000)]);
-    if (temp) { try { rmSync(dir, { recursive: true, force: true }); } catch {} }
+    await Promise.race([gone, sleep(10000)]);
+    // Helper processes can still be writing into the profile for a moment
+    // after the browser exits (seen on Linux), so retry rather than race them.
+    if (temp) { try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); } catch {} }
   };
   return { proc, wsUrl, cleanup };
 }
