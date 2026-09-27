@@ -128,8 +128,10 @@ async function launch() {
   // fired, because the script exits first, and left a profile behind per run.
   const cleanup = async () => {
     const gone = new Promise((r) => { if (proc.exitCode !== null) r(); else proc.once('exit', r); });
+    const t0 = Date.now();
     try { proc.kill(); } catch {}
     await Promise.race([gone, sleep(10000)]);
+    if (process.env.MIKEDESIGN_DEBUG) console.error(`measure: chrome exit took ${Date.now() - t0} ms (exitCode ${proc.exitCode}, signal ${proc.signalCode})`);
     // Helper processes can still be writing into the profile for a moment
     // after the browser exits (seen on Linux), so retry rather than race them.
     if (temp) {

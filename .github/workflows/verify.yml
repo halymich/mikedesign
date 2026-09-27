@@ -24,3 +24,4 @@ jobs:
       - run: bash mikedesign/scripts/verify.sh
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          MIKEDESIGN_DEBUG: '1'
