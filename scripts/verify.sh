@@ -233,7 +233,7 @@ html,body{margin:0;padding:0;width:400px;height:400px;background:#fff}
 div{width:400px;height:400px;background:#000;border-radius:100px;$SHAPE}
 </style></head><body><div></div></body></html>
 HTML
-    "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+    "$CHROME" --headless=new ${CI:+--no-sandbox} --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
       --window-size=400,400 --screenshot="$S/$variant.png" "file://$S/$variant.html" >/dev/null 2>&1
   done
   if [ -f "$S/super.png" ] && [ -f "$S/circle.png" ]; then
