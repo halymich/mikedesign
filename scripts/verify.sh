@@ -289,6 +289,12 @@ EOF
 SW=$(node scripts/lint.mjs --source "$U/View.swift" --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="swift-fixed-font-size").map(f=>f.where.split(":").pop()).join(","))})')
 check "fixed Swift font size caught, scaled ones not" "$SW" "1"
+if [ -f "${MIKECOPY_HOME:-../mikecopy}/data/rules.json" ]; then
+  printf '// A comment \xe2\x80\x94 not copy\n/* block \xe2\x80\x94 comment */\nlet url = "https://x.io" // trailing \xe2\x80\x94 note\nText("Shipped \xe2\x80\x94 string")\n' > "$U/Copy.swift"
+  CM=$(node scripts/lint.mjs --source "$U/Copy.swift" --json 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="em-dash-in-copy").map(f=>f.where.split(":").pop()).join(","))})')
+  check "code comments are not copy, shipped strings are" "$CM" "4"
+fi
 rm -rf "$U"
 
 echo

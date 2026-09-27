@@ -548,14 +548,23 @@ function runSource(paths) {
       });
     }
 
+    // In code, comments are notes to developers, not copy anyone reads. Linting
+    // them buried a real app's six shipped strings under a hundred comment hits,
+    // which teaches people to ignore the rule. Whole-line comments are skipped,
+    // and a trailing " // note" is cut; "//" inside a URL has no space before it.
+    const CODE = new Set(['.swift', '.kt', '.js', '.ts', '.jsx', '.tsx', '.css', '.vue', '.svelte']);
+    const isCode = CODE.has(extname(file));
+    const prose = (line) => (isCode ? line.replace(/\s\/\/\s.*$/, '') : line);
+    const commentLine = (line) => isCode && /^\s*(\/\/|\/\*|\*)/.test(line);
+
     for (const rule of textRules) {
       // Rendered text arrives with its role already known, so a rule can match bare prose.
       // Raw source does not, so a role-specific rule declares sourcePattern to find the role
       // in the markup itself. Without it a headline rule fires on every paragraph.
       const re = new RegExp(rule.test.sourcePattern || rule.test.pattern, rule.test.flags || '');
       lines.forEach((line, i) => {
-        if (fenced.has(i)) return;
-        const m = line.match(re);
+        if (fenced.has(i) || commentLine(line)) return;
+        const m = prose(line).match(re);
         if (m) report(rule, `${file}:${i + 1}`, m[0].trim(), line);
       });
     }
