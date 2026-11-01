@@ -63,12 +63,13 @@ const decls = [];
 for (const m of declText.matchAll(/([a-z-]+)\s*:\s*([^;{}]+)/gi)) decls.push([m[1].toLowerCase(), m[2].trim().toLowerCase()]);
 
 const candidates = new Map(); // slug -> what we saw
-const want = (slug, saw) => { if (!candidates.has(slug)) candidates.set(slug, saw); };
+const guessed = new Set(); // value-specific slugs we try speculatively; absence is not worth reporting
+const want = (slug, saw, guess = false) => { if (!candidates.has(slug)) { candidates.set(slug, saw); if (guess) guessed.add(slug); } };
 
 for (const [prop, value] of decls) {
   if (prop.startsWith('--')) { want('css-variables', `${prop}`); continue; }
   want(`css-${prop}`, `${prop}: ${value}`);
-  if (['display', 'position', 'overflow', 'object-fit', 'background-size'].includes(prop)) want(`css-${prop}-${value.split(/\s+/)[0]}`, `${prop}: ${value}`);
+  if (['display', 'position', 'overflow', 'object-fit', 'background-size'].includes(prop)) want(`css-${prop}-${value.split(/\s+/)[0]}`, `${prop}: ${value}`, true);
   if (/linear-gradient|radial-gradient|conic-gradient/.test(value)) want('css-linear-gradient', `${prop}: ${value.slice(0, 50)}`);
   if (/\bcalc\(/.test(value)) want('css-function-calc', `${prop}: ${value.slice(0, 50)}`);
   if (/\bvar\(/.test(value)) want('css-variables', `${prop}: ${value.slice(0, 50)}`);
@@ -118,7 +119,7 @@ const rows = [];
 const noData = [];
 for (const [slug, saw] of candidates) {
   const f = features.get(slug);
-  if (!f) { noData.push(slug); continue; }
+  if (!f) { if (!guessed.has(slug)) noData.push(slug); continue; }
   const bad = [];
   for (const [family, platforms] of Object.entries(f.stats)) {
     if (wantClients && !wantClients.includes(family)) continue;
