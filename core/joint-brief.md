@@ -67,7 +67,7 @@ the visitor and the job are settled.
 4. **Build, verify, compare to the bar, show.** One surface, words in place, desktop and phone.
 
 The words are written after the structure is agreed and before it is built. They are never
-retrofitted into finished markup, and the structure is never finalised without having seen them.
+retrofitted into finished markup, and the structure is never finalized without having seen them.
 
 ## Fallbacks
 

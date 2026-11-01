@@ -72,10 +72,7 @@ const COPY_FIELDS = [
  * is guessed because the other half asked first.
  */
 const JOINT_FIELDS = [
-  ['copy-scope',       'interface, marketing, lifecycle or store. Sets the budgets and the structure.'],
-  ['reader-knows',     'What the reader already understands, so no string explains it again.'],
-  ['the-claim',        'What this surface asserts, in one sentence. If it cannot be said in one, it is two surfaces.'],
-  ['never-say',        'Words, phrases and framings this owner would not use. Quoted, not described.'],
+  ...COPY_FIELDS.filter(([k]) => k !== 'voice-source'),
   ['string-inventory', 'Every piece of text the surface needs, one line each, with the job it does. After the deletion test.'],
   ['bar',              'The 3 to 5 references and the principle taken from each, or "unchecked" with the reason.'],
 ];

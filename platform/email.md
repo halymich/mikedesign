@@ -41,7 +41,7 @@ and record the assumption. Do not default to the clients that happen to be famou
 node $S/email-check.mjs <email.html> --clients <family,family> [--verbose]
 ```
 
-It reads the email, finds every HTML and CSS feature it uses, and looks each one up in the
+Name the clients that matter to this email's readers: the feed covers dozens, many of them small regional webmail, and checking all of them (`--all`) makes almost every email fail. An unknown client name is no verdict. It reads the email, finds every HTML and CSS feature it uses, and looks each one up in the
 public support data at caniemail.com, fetched fresh on every run. It reports what is
 unsupported in the clients you named, what works only with caveats, and basic accessibility
 gaps (no language, no title, images with no alt text). Exit 1 means something is unsupported

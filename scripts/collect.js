@@ -87,7 +87,9 @@
   // A button that discloses or selects content is carrying that content's label, not
   // naming an action: an FAQ question, a tab, a step picker. Holding it to the
   // three-word ceiling meant for calls to action fails every FAQ page. It is still a
-  // control for focus and eyebrow purposes; only its word budget changes.
+  // control for focus and eyebrow purposes; only its word budget changes. Accepted limit: a call to
+  // action built as a disclosure trigger also escapes the hard ceiling, and is still held to
+  // the advisory item ceiling.
   const isToggle = (el) => {
     if (!el.getAttribute) return false;
     if (el.hasAttribute('aria-expanded') || el.hasAttribute('aria-pressed') || el.hasAttribute('aria-selected')) return true;

@@ -348,7 +348,10 @@ function runRendered(data) {
       // unrelated lines look alike.
       const stop = new Set(t.stopwords || []);
       const stem = (w) => (w.length > 4 && w.endsWith('s') ? w.slice(0, -1) : w);
-      const content = (txt) => new Set((String(txt).toLowerCase().match(/[a-z0-9']+/g) || []).filter((w) => w.length > 2 && !stop.has(w)).map(stem));
+      // Unicode-aware so the check works in every language a product ships in. Latin words
+      // under three letters are function words; in other scripts two characters can be a word.
+      const content = (txt) => new Set((String(txt).toLowerCase().match(/[\p{L}\p{N}']+/gu) || [])
+        .filter((w) => (/^[\x00-\x7f]+$/.test(w) ? w.length > 2 : w.length > 1) && !stop.has(w)).map(stem));
       for (let i = 0; i < els.length; i++) {
         const el = els[i];
         if (el.role !== 'subhead' || !el.text) continue;

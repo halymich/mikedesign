@@ -50,7 +50,7 @@ email, a photo-cleaning app's review screen, a utility's pricing page), by this 
 1. Teams from the taste profile's named list that fit the category.
 2. Two or three current examples found live in the same category. The test for "world class" is
    evidence, not fame: shipped to a large audience, built by a dedicated design team, still in
-   current use and recently updated, and recognised by working designers (for example through
+   current use and recently updated, and recognized by working designers (for example through
    peer-reviewed awards, published case studies or design-system documentation). Prefer a source
    the team published about its own work over an aggregator's ranking.
 3. For native, the platform's current human interface guidelines, read live, plus the reference

@@ -197,24 +197,46 @@ restate() { node scripts/lint.mjs --rendered "$1" --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="subhead-restates-headline").length)})'; }
 check "a restating subhead is flagged"        "$(restate "$RT/restate.json")" "1"
 check "a subhead that adds something is not"  "$(restate "$CLEAN")" "0"
+# The check must work in the languages a product ships in, not only ASCII.
+for pair in "Soyez alerté dès que votre prix d'hôtel baisse|Soyez alerté dès que le prix d'hôtel baisse, sans rien faire" "تتبع سعر فندقك بعد الحجز|تتبع سعر فندقك بعد الحجز تلقائيا"; do
+  node -e 'const [h,sub]=process.argv[3].split("|");const d=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const e of d.elements){if(e.role==="headline")e.text=h;if(e.role==="subhead")e.text=sub}require("fs").writeFileSync(process.argv[2],JSON.stringify(d))' "$CLEAN" "$RT/lang.json" "$pair"
+  check "a restating subhead is flagged outside ASCII" "$(restate "$RT/lang.json")" "1"
+done
 rm -rf "$RT"
 
 echo
 echo "8b. Email support is checked against support data, not memory"
 EM=fixtures/email
-node scripts/email-check.mjs "$EM/bad.html" --data "$EM/caniemail-sample.json" --clients gmail,outlook >/dev/null 2>&1
+EC() { node scripts/email-check.mjs "$@" --data "$EM/caniemail-sample.json"; }
+# Expressions below are literals in this script, evaluated over the checker's JSON output.
+ECJ() { local expr="$1"; shift; EC "$@" --json 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log($expr)})"; }
+EC "$EM/bad.html" --clients gmail,outlook >/dev/null 2>&1
 check "unsupported features exit 1"           "$?" "1"
-node scripts/email-check.mjs "$EM/good.html" --data "$EM/caniemail-sample.json" --clients gmail,outlook >/dev/null 2>&1
+EC "$EM/good.html" --clients gmail,outlook >/dev/null 2>&1
 check "a safe email exits 0"                  "$?" "0"
-BADFLEX=$(node scripts/email-check.mjs "$EM/bad.html" --data "$EM/caniemail-sample.json" --clients outlook --json 2>/dev/null \
-  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.problems.some(p=>p.slug==="css-display-flex")&&j.structural.length>0?"yes":"no")})')
-check "flex is flagged and basics are reported" "$BADFLEX" "yes"
-node scripts/email-check.mjs "$EM/good.html" --data "$EM/missing.json" >/dev/null 2>&1
+check "flex is flagged and basics are reported" "$(ECJ 'j.problems.some(p=>p.slug==="css-display-flex")&&j.structural.length>0?"yes":"no"' "$EM/bad.html" --clients outlook)" "yes"
+# Exit 0 is only meaningful if the clients named were actually checked.
+EC "$EM/good.html" --clients gmial >/dev/null 2>&1
+check "an unknown client is no verdict, not a pass" "$?" "2"
+EC "$EM/good.html" >/dev/null 2>&1
+check "no --clients and no --all is no verdict" "$?" "2"
+# --all is the explicit opt-in. It is allowed to find problems (small regional clients fail
+# on almost anything), so only assert that it is accepted rather than refused.
+EC "$EM/good.html" --all >/dev/null 2>&1; ALLRC=$?
+check "--all is accepted as an explicit choice" "$([ "$ALLRC" -ne 2 ] && echo accepted)" "accepted"
+EC --json "$EM/good.html" --clients gmail >/dev/null 2>&1
+check "flags may come before the file"        "$?" "0"
+node scripts/email-check.mjs "$EM/good.html" --clients gmail --data "$EM/missing.json" >/dev/null 2>&1
 check "unreadable support data is no verdict" "$?" "2"
-printf '<p>nothing</p>' > "${TMPDIR:-/tmp}/md-empty-email.html"
-node scripts/email-check.mjs "${TMPDIR:-/tmp}/md-empty-email.html" --data "$EM/caniemail-sample.json" >/dev/null 2>&1
+ET=$(mktemp -d)
+printf '<html lang="en"><head><title>t</title></head><body style='"'"'display:flex'"'"'><a style="color:red">x</a></body></html>' > "$ET/single.html"
+check "single-quoted style attributes are read" "$(ECJ 'j.problems.some(p=>p.slug==="css-display-flex")?"yes":"no"' "$ET/single.html" --clients outlook)" "yes"
+printf '<html lang="en"><head><title>t</title><style>a:hover{color:red} @media (max-width: 600px){p{margin:0}}</style></head><body><p style="margin:0">x</p></body></html>' > "$ET/parse.html"
+check "selectors and media features are not properties" "$(ECJ 'j.noData.filter(x=>x==="css-a"||x==="css-max-width").length' "$ET/parse.html" --clients outlook)" "0"
+printf '<p>nothing</p>' > "$ET/empty.html"
+EC "$ET/empty.html" --clients gmail >/dev/null 2>&1
 check "an email with no known features is no verdict" "$?" "2"
-rm -f "${TMPDIR:-/tmp}/md-empty-email.html"
+rm -rf "$ET"
 
 echo
 echo "9. Store assets are checked against real store rules"

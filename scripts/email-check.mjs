@@ -2,8 +2,8 @@
 /*
  * email-check: which parts of this email's HTML and CSS break in which mail clients.
  *
- *   node email-check.mjs <email.html> [--clients gmail,outlook,apple-mail]
- *                        [--data <caniemail.json>] [--json]
+ *   node email-check.mjs <email.html> --clients gmail,outlook,apple-mail
+ *                        [--all] [--data <caniemail.json>] [--json] [--verbose]
  *
  * Email clients support a small and shifting subset of HTML and CSS, and a list of
  * what works in this file would be wrong within a year. So there is no list here.
@@ -15,8 +15,12 @@
  * Exit 1: at least one feature is unsupported somewhere, or a basic is missing.
  *         Partial support is listed with --verbose and never fails on its own, because
  *         nearly everything is "partial" somewhere and a gate that always fires gets ignored.
- * Exit 2: no verdict (the file was unreadable, no features were found, or the data
- *         could not be loaded). Exit 2 is not a pass.
+ * Exit 2: no verdict (the file was unreadable, no features were found, the data
+ *         could not be loaded, or the clients named are not in the data). Exit 2 is not a pass.
+ *
+ * Name the clients that matter to this email's readers. The feed covers dozens of
+ * clients, many of them small regional webmail, and checking all of them makes almost
+ * every email fail, which teaches people to ignore the result. `--all` is explicit.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -24,14 +28,19 @@ import { readFileSync, existsSync } from 'node:fs';
 const FEED = 'https://www.caniemail.com/api/data.json';
 const argv = process.argv.slice(2);
 const flag = (n) => { const i = argv.indexOf(n); return i > -1 ? argv[i + 1] : null; };
-const file = argv.find((a, i) => !a.startsWith('--') && (i === 0 || !argv[i - 1].startsWith('--')));
+// Flags that take a value, so the file is the first argument that is neither a flag
+// nor one of those values, wherever the flags sit.
+const VALUE_FLAGS = new Set(['--clients', '--data']);
+const file = argv.find((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.has(argv[i - 1])));
 const asJson = argv.includes('--json');
 const verbose = argv.includes('--verbose');
 const wantClients = flag('--clients') ? flag('--clients').split(',').map((s) => s.trim()) : null;
 const dataFile = flag('--data');
+const all = argv.includes('--all');
 
 const bail = (msg) => { console.error(`email-check: ${msg}`); process.exit(2); };
-if (!file || !existsSync(file)) bail('usage: email-check.mjs <email.html> [--clients a,b] [--data file] [--json]');
+if (!file || !existsSync(file)) bail('usage: email-check.mjs <email.html> --clients a,b [--all] [--data file] [--json] [--verbose]');
+if (!wantClients && !all) bail('name the clients that matter with --clients gmail,outlook,... (or pass --all to check every client in the data)');
 
 const html = readFileSync(file, 'utf8');
 
@@ -39,11 +48,19 @@ const html = readFileSync(file, 'utf8');
 
 const css = [];
 for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) css.push(m[1]);
-const inline = [...html.matchAll(/\sstyle\s*=\s*"([^"]*)"/gi)].map((m) => m[1]);
+const inline = [...html.matchAll(/\sstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)].map((m) => m[1] ?? m[2]);
 const allCss = css.join('\n') + '\n' + inline.join(';');
 
+// Declarations only: drop url(...) payloads, at-rule preludes (a media feature such as
+// max-width is not a property) and selectors (a:hover is not a declaration).
+const declText = allCss
+  .replace(/url\([^)]*\)/gi, 'url()')
+  .replace(/@(?:media|supports|container)[^{]*\{/gi, '')
+  .replace(/@font-face\s*\{/gi, ';')
+  .replace(/[^{};]*\{/g, ';');
+
 const decls = [];
-for (const m of allCss.matchAll(/([a-z-]+)\s*:\s*([^;{}]+)/gi)) decls.push([m[1].toLowerCase(), m[2].trim().toLowerCase()]);
+for (const m of declText.matchAll(/([a-z-]+)\s*:\s*([^;{}]+)/gi)) decls.push([m[1].toLowerCase(), m[2].trim().toLowerCase()]);
 
 const candidates = new Map(); // slug -> what we saw
 const want = (slug, saw) => { if (!candidates.has(slug)) candidates.set(slug, saw); };
@@ -87,6 +104,11 @@ try {
   bail(`could not load support data (${dataFile || FEED}): ${e.message}`);
 }
 const features = new Map(feed.data.map((f) => [f.slug, f]));
+const known = new Set(feed.data.flatMap((f) => Object.keys(f.stats || {})));
+if (wantClients) {
+  const unknown = wantClients.filter((c) => !known.has(c));
+  if (unknown.length) bail(`not in the support data: ${unknown.join(', ')}. Available: ${[...known].sort().join(', ')}`);
+}
 const names = feed.nicenames || { family: {}, platform: {} };
 
 const latest = (versions) => { const ks = Object.keys(versions); return versions[ks[ks.length - 1]]; };
