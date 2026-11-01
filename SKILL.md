@@ -57,9 +57,12 @@ on sight. Hard rules gate the work. Advisory rules are reported for judgment and
 The user's explicit brief overrides any rule, and the override is recorded in `DESIGN.md` so the
 decision is visible later. Their intent wins; your habits do not.
 
-One of them is not a judgment call and has no override: **never put anything above a headline.**
-No eyebrow, no kicker, no small uppercase label, no coloured pill, in any case or shape. It is
-the most recognizable tell of generated design and it is filler every time. Real information
+One of them is firmer than the rest: **never put anything above a headline** in an app screen,
+an email or any surface that is not a marketing website. No eyebrow, no kicker, no small uppercase
+label, no coloured pill, in any case or shape. It is the most recognizable tell of generated design
+and it is filler almost every time. On a marketing website the owner dropped the hard ban (decision
+of 1 November 2026): an eyebrow there is an advisory finding that must pass the deletion test, and
+a headline that stands alone is still the default. Real information
 above a heading is allowed only as the component it actually is, and only in four cases: a
 breadcrumb of working links, a step counter, a byline, a date or chapter number. The rule is in
 [core/craft-floor.md](core/craft-floor.md) for building and in mikecopy's voice guide for

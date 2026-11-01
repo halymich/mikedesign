@@ -188,6 +188,28 @@ CTA=$(node scripts/lint.mjs --rendered "$SLOP" --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="eyebrow-label"&&/Get started/.test(f.evidence)).length)})')
 check "a CTA above a heading is not an eyebrow" "$CTA" "0"
 
+# The ban is hard everywhere except marketing websites, where the owner made it advisory
+# (1 November 2026). The condition is declared in the rule and applied by surface type and
+# platform, so a native paywall or an email that is also "persuade" keeps the hard ban.
+eyesev() { node scripts/lint.mjs --rendered "$SLOP" "$@" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log([...new Set(j.findings.filter(f=>f.id==="eyebrow-label").map(f=>f.severity))].join(","))})'; }
+check "marketing website: advisory"            "$(eyesev)" "advisory"
+check "an operate surface: still hard"          "$(eyesev --surface operate)" "hard"
+check "a read surface: still hard"              "$(eyesev --surface read)" "hard"
+EY=$(mktemp -d)
+cat > "$EY/DESIGN.md" <<'EOF'
+```json
+{ "brand": {}, "targets": {
+  "site": { "platform": "web", "surfaceType": "persuade" },
+  "app":  { "platform": "ios", "surfaceType": "persuade" },
+  "mail": { "platform": "email", "surfaceType": "persuade" } } }
+```
+EOF
+check "persuade on web: advisory"               "$(eyesev --design "$EY/DESIGN.md" --target site)" "advisory"
+check "a native paywall (persuade, ios): hard"  "$(eyesev --design "$EY/DESIGN.md" --target app)" "hard"
+check "an email (persuade, email): hard"        "$(eyesev --design "$EY/DESIGN.md" --target mail)" "hard"
+rm -rf "$EY"
+
 echo "8a. A subhead that restates its headline is caught"
 # Derived from the clean snapshot so the clean page stays the single source of truth:
 # swap the real subhead for one that repeats the headline's words.

@@ -111,7 +111,18 @@
           "^\\d{4}-\\d{2}-\\d{2}$",
           "^\\d+\\s+min(ute)?s?\\s+read$"
         ]
-      }
+      },
+      "severityWhere": [
+        {
+          "surface": "persuade",
+          "platforms": [
+            "web",
+            null
+          ],
+          "severity": "advisory",
+          "_note": "Owner decision, 1 November 2026: the hard ban is dropped on marketing websites only. There it is reported for judgment and must pass the deletion test. App screens, email and every other surface keep the hard ban."
+        }
+      ]
     },
     {
       "id": "emoji-as-icon",

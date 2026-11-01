@@ -81,7 +81,7 @@ gets applied to a privacy policy. When copy exceeds its ceiling the prescribed f
 a mockup or a demonstration, never smaller type.
 
 **Zero AI slop.** The tells the design community now recognizes on sight: indigo and violet
-defaults, gradient text, eyebrow labels (banned outright, at write time and again in the linter,
+defaults, gradient text, eyebrow labels (banned outright everywhere except marketing websites, where they are advisory, at write time and again in the linter,
 measured as geometry so sentence case and wrapper divs do not escape), emoji as icons, halo
 shadows, default typefaces as the
 display voice, glass on panels that float over nothing. The writing tells (negative parallelism,
