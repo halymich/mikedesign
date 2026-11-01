@@ -215,11 +215,26 @@ const findings = [];
 const norm = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
 const seen = new Map();
 
+// A rule can be softer on one kind of surface (the eyebrow ban is advisory on marketing
+// websites and hard everywhere else). The condition is declared in the rule, not here.
+// No DESIGN.md at all means no project record, so a plain page is assumed to be a website
+// (null). A DESIGN.md that loaded but names no platform is unknown, and unknown fails closed:
+// the softer severity never applies by omission.
+const platformKey = () => (design.platform ? String(design.platform).toLowerCase() : (design.found ? 'unknown' : null));
+const effectiveSeverity = (rule) => {
+  for (const o of rule.severityWhere || []) {
+    if (o.surface && o.surface !== surface) continue;
+    if (o.platforms && !o.platforms.includes(platformKey())) continue;
+    return o.severity;
+  }
+  return rule.severity;
+};
+
 function report(rule, where, evidence, context) {
   if (allowed.has(rule.id)) return; // explicitly overridden by the brief
   const finding = {
     id: rule.id,
-    severity: rule.severity,
+    severity: effectiveSeverity(rule),
     title: rule.title,
     why: rule.why,
     fix: rule.fix,

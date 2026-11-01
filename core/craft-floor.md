@@ -50,7 +50,15 @@ rather than assembled, and it is the thing models skip most reliably.
 **Real content.** Longest plausible name, empty list, one item, a thousand items, a broken image,
 a slow network. Design that only works at the demo length is not finished.
 
-## Never write an eyebrow
+## Eyebrows
+
+**Scope.** The ban below is absolute in app screens, emails and every surface that is not a
+marketing website. On a marketing website the owner dropped the hard ban (decision of 1 November
+2026): an eyebrow there is reported as advisory, not a gate. It still has to pass the deletion
+test, meaning it says something the headline does not, and build without one by default. The
+linter applies this by surface type and platform: a `persuade` surface on a `web` target. A paywall,
+pricing or onboarding screen inside a web app is not a marketing website, so lint it against the
+app's own target (`operate`), where the ban stays hard.
 
 Nothing goes above a headline. No small line of type, no uppercase label, no coloured pill, no
 short phrase in the brand accent, at any size, in any case, in any shape. If a heading is the
