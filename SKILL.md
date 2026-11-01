@@ -214,7 +214,8 @@ One copy of the palette means it cannot drift between the app and the site. Targ
 the brand rather than replacing it, so an app can add a colour the site never uses without
 restating the whole palette.
 
-Pass `--target <name>` to the scripts. With several targets declared and none named, the linter
+`platform` is one of `web`, `ios`, `android` or `email`, written in lower case. A target that
+omits it is treated as unknown, which keeps the strictest rules. Pass `--target <name>` to the scripts. With several targets declared and none named, the linter
 stops and asks rather than picking one. Guessing which interface is being checked is the same
 failure as guessing a design decision.
 
