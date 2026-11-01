@@ -84,10 +84,22 @@
 
   const isHeadline = (el) => el.tagName === 'H1' || el.tagName === 'H2';
 
+  // A button that discloses or selects content is carrying that content's label, not
+  // naming an action: an FAQ question, a tab, a step picker. Holding it to the
+  // three-word ceiling meant for calls to action fails every FAQ page. It is still a
+  // control for focus and eyebrow purposes; only its word budget changes. Accepted limit: a call to
+  // action built as a disclosure trigger also escapes the hard ceiling, and is still held to
+  // the advisory item ceiling.
+  const isToggle = (el) => {
+    if (!el.getAttribute) return false;
+    if (el.hasAttribute('aria-expanded') || el.hasAttribute('aria-pressed') || el.hasAttribute('aria-selected')) return true;
+    return /^(tab|menuitemradio)$/.test(el.getAttribute('role') || '');
+  };
+
   const roleOf = (el, text) => {
     const explicit = el.getAttribute && el.getAttribute('data-role');
     if (explicit) return explicit;
-    if (isControl(el)) return 'control';
+    if (isControl(el)) return isToggle(el) ? 'item' : 'control';
     if (isHeadline(el)) return 'headline';
     if (/^H[3-6]$/.test(el.tagName)) return 'item';
     // A subhead is the deck under the PAGE headline, so only an h1 creates one.

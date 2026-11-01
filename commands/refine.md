@@ -21,6 +21,11 @@ and fixing in one motion is how a refine pass turns into an unrequested rebuild.
 
 ## 2. Scope
 
+If the target carries words, run the deletion test from
+[../core/joint-brief.md](../core/joint-brief.md) over every string in scope first. Propose cuts
+with the reason for each. The strongest refinement available is often removing text the design
+already says. Words that stay and need rewriting go to mikecopy.
+
 Name the target precisely: this component, this section, this screen. Then hold that line. The
 most common failure here is scope creep that looks like helpfulness, and the user cannot review a
 change that touched everything.
@@ -45,7 +50,9 @@ supply, leave it and flag it. Do not invent content to close a finding.
 
 ## 4. Verify
 
-Re-render, re-collect, re-lint, and compare against the findings you set out to fix.
+Re-render, re-collect, re-lint, and compare against the findings you set out to fix. Then compare
+the result to the references in [../core/bar.md](../core/bar.md), principle by principle, and
+list the gaps that remain.
 
 ## 5. Show the difference
 

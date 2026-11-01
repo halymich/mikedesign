@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Toggles</title></head>
+<body>
+<main>
+  <h2>Questions</h2>
+  <button id="faq" type="button" aria-expanded="false" aria-controls="a1">How does this make money from my bookings?</button>
+  <button id="tab" type="button" role="tab" aria-selected="true">Enter your booking details</button>
+  <button id="step" type="button" aria-pressed="false">We watch around the clock</button>
+  <button id="cta" type="button">Start watching this price now</button>
+  <pre id="out"></pre>
+</main>
+<script>
+  // Capture what the collector would post, instead of sending it anywhere.
+  window.fetch = (url, opts) => { window.__payload = JSON.parse(opts.body); return Promise.resolve({ status: 200 }); };
+</script>
+<script src="../../scripts/collect.js"></script>
+<script>
+  setTimeout(() => {
+    const roles = {};
+    for (const e of window.__payload.elements) if (e.tag === 'BUTTON') roles[e.id || e.text.slice(0, 12)] = e.role;
+    document.getElementById('out').textContent = 'ROLES:' + JSON.stringify(roles);
+  }, 300);
+</script>
+</body></html>

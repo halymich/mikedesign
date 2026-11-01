@@ -13,6 +13,13 @@ design. Never claim a rung of the ladder was impossible without having tried it.
 A report that says "the hero now uses the accent colour at 72px" has told the user nothing they
 can judge. A link they can open has told them everything.
 
+## Show the words in place
+
+Structure and words are shown together, never one then the other. A mockup with lorem ipsum or
+a copy deck with no layout asks the owner to imagine the half you left out. The first gate shows
+the sequence with each string's job in outline; the last shows the real surface with its real
+words.
+
 ## The ladder
 
 Climb down only when the rung above genuinely does not apply. Check the tool exists before

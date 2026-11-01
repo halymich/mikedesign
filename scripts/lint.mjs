@@ -341,6 +341,32 @@ function runRendered(data) {
       }
     }
 
+    else if (t.type === 'restates') {
+      // Words, not meaning: a subhead whose content words are mostly the headline's
+      // own, or a headline whose content words nearly all reappear in the subhead,
+      // is repeating itself. Function words are dropped so "the" cannot make two
+      // unrelated lines look alike.
+      const stop = new Set(t.stopwords || []);
+      const stem = (w) => (w.length > 4 && w.endsWith('s') ? w.slice(0, -1) : w);
+      // Unicode-aware so the check works in every language a product ships in. Latin words
+      // under three letters are function words; in other scripts two characters can be a word.
+      const content = (txt) => new Set((String(txt).toLowerCase().match(/[\p{L}\p{N}']+/gu) || [])
+        .filter((w) => (/^[\x00-\x7f]+$/.test(w) ? w.length > 2 : w.length > 1) && !stop.has(w)).map(stem));
+      for (let i = 0; i < els.length; i++) {
+        const el = els[i];
+        if (el.role !== 'subhead' || !el.text) continue;
+        let head = null;
+        for (let j = i - 1; j >= 0; j--) { if (els[j].role === 'headline') { head = els[j]; break; } }
+        if (!head) continue;
+        const S = content(el.text);
+        const H = content(head.text);
+        if (S.size < t.minWords || H.size < t.minWords) continue;
+        const shared = [...S].filter((w) => H.has(w)).length;
+        const ratio = Math.max(shared / H.size, shared / S.size);
+        if (ratio >= t.minOverlap) report(rule, locator(el), `"${el.text}" repeats ${Math.round(ratio * 100)}% of the headline "${head.text}"`);
+      }
+    }
+
     else if (t.type === 'emoji-icon') {
       for (const el of els) {
         if (!el.text || el.text.length > 8) continue;

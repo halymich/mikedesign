@@ -15,10 +15,17 @@ pricing page, not a form.
 
 ## 2. Brief
 
+Load [../core/joint-brief.md](../core/joint-brief.md) and [../core/bar.md](../core/bar.md). The
+interview covers the layout and its words together and is run by the `grilling` skill. The record
+is a joint brief:
+
 ```
-node $S/brief.mjs init <project-root> <surface> --type <persuade|operate|read>
+node $S/brief.mjs init <project-root> <surface> --type <persuade|operate|read> --fields joint
 node $S/brief.mjs check <project-root>/.mikedesign/brief-<surface>.md
 ```
+
+Choose the references and write the principle taken from each into the brief's `bar` field before
+any structure is drawn.
 
 Surface type is not inherited from the project. A docs page inside a marketing site is `read`.
 Get it right, because it sets the word budgets and half of what "good" means here.
@@ -42,6 +49,10 @@ product and therefore describes none.
 Sections earn their place by carrying something the sequence needs. A section that exists
 because pages usually have one is the definition of the thing this skill prevents.
 
+Draw the string inventory in the same artifact as the sequence: every piece of text, the job it
+does, and the result of the deletion test. The owner approves the structure and what is said in
+it as one thing.
+
 **Gate on the sequence before you build it**, when the direction for this surface is new. The
 section list is the cheapest artifact to change and the most expensive to change late: reordering
 a list costs a sentence, reordering a built page costs the page. Show the sequence, say which
@@ -52,8 +63,8 @@ the one at the end.
 ## 5. Build
 
 Load [../core/craft-floor.md](../core/craft-floor.md) and the matching platform file, plus
-[../core/ui.md](../core/ui.md) when the surface is `operate`. Hand the words to mikecopy (see
-"Words" in `SKILL.md`). Build the
+[../core/ui.md](../core/ui.md) when the surface is `operate` on web or native. Hand the surviving
+strings to mikecopy (see "Words" in `SKILL.md`). Build the
 whole surface: real copy, real states, responsive, keyboard reachable, empty and error cases
 handled. A surface that only works with placeholder content is not finished.
 
@@ -64,7 +75,8 @@ has, that is usually the signal it should be a mockup, a diagram or a demonstrat
 ## 6. Verify
 
 Render, collect, lint, measure if it is product UI, screenshot desktop and mobile, read the
-screenshots. Fix everything one
+screenshots, and compare the result to each reference per [../core/bar.md](../core/bar.md):
+principle by principle, listing the gaps and the reason each one stays. Fix everything one
 round shows, confirm with at most one more round, then stop. Open-ended self-review costs the
 user money and finds less than one careful look.
 

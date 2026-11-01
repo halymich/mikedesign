@@ -127,6 +127,16 @@ node scripts/brief.mjs check "$SB" >/dev/null 2>&1
 check "scope fields are enforced"   "$(grep -c 'ASSUMED:' "$SB")" "11"
 # and a plain surface must NOT inherit them
 check "base brief stays base"       "$(grep -c '^- surfaces:' "$B/.mikedesign/brief-home.md")" "0"
+
+# A joint brief carries the writing questions and the bar beside the design ones,
+# so the words are never an afterthought to the layout.
+node scripts/brief.mjs init "$B" feature --type operate --fields joint >/dev/null 2>&1
+JB="$B/.mikedesign/brief-feature.md"
+for f in the-claim never-say string-inventory bar; do
+  if grep -q "^- $f:" "$JB"; then ok "joint brief requires $f"; else bad "joint brief requires $f"; fi
+done
+node scripts/brief.mjs check "$JB" >/dev/null 2>&1
+check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "14"
 rm -rf "$B"
 
 echo
@@ -177,6 +187,60 @@ check "permitted components do not fire"       "$(eyebrow "$CLEAN")" "0"
 CTA=$(node scripts/lint.mjs --rendered "$SLOP" --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="eyebrow-label"&&/Get started/.test(f.evidence)).length)})')
 check "a CTA above a heading is not an eyebrow" "$CTA" "0"
+
+echo "8a. A subhead that restates its headline is caught"
+# Derived from the clean snapshot so the clean page stays the single source of truth:
+# swap the real subhead for one that repeats the headline's words.
+RT=$(mktemp -d)
+node -e 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const e of d.elements)if(e.role==="subhead")e.text="Know when your hotel price drops, the moment it does.";require("fs").writeFileSync(process.argv[2],JSON.stringify(d))' "$CLEAN" "$RT/restate.json"
+restate() { node scripts/lint.mjs --rendered "$1" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="subhead-restates-headline").length)})'; }
+check "a restating subhead is flagged"        "$(restate "$RT/restate.json")" "1"
+check "a subhead that adds something is not"  "$(restate "$CLEAN")" "0"
+# The check must work in the languages a product ships in, not only ASCII.
+for pair in "Soyez alerté dès que votre prix d'hôtel baisse|Soyez alerté dès que le prix d'hôtel baisse, sans rien faire" "تتبع سعر فندقك بعد الحجز|تتبع سعر فندقك بعد الحجز تلقائيا"; do
+  node -e 'const [h,sub]=process.argv[3].split("|");const d=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const e of d.elements){if(e.role==="headline")e.text=h;if(e.role==="subhead")e.text=sub}require("fs").writeFileSync(process.argv[2],JSON.stringify(d))' "$CLEAN" "$RT/lang.json" "$pair"
+  check "a restating subhead is flagged outside ASCII" "$(restate "$RT/lang.json")" "1"
+done
+rm -rf "$RT"
+
+echo
+echo "8b. Email support is checked against support data, not memory"
+EM=fixtures/email
+EC() { node scripts/email-check.mjs "$@" --data "$EM/caniemail-sample.json"; }
+# Expressions below are literals in this script, evaluated over the checker's JSON output.
+ECJ() { local expr="$1"; shift; EC "$@" --json 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log($expr)})"; }
+EC "$EM/bad.html" --clients gmail,outlook >/dev/null 2>&1
+check "unsupported features exit 1"           "$?" "1"
+EC "$EM/good.html" --clients gmail,outlook >/dev/null 2>&1
+check "a safe email exits 0"                  "$?" "0"
+check "flex is flagged and basics are reported" "$(ECJ 'j.problems.some(p=>p.slug==="css-display-flex")&&j.structural.length>0?"yes":"no"' "$EM/bad.html" --clients outlook)" "yes"
+# Exit 0 is only meaningful if the clients named were actually checked.
+EC "$EM/good.html" --clients gmial >/dev/null 2>&1
+check "an unknown client is no verdict, not a pass" "$?" "2"
+EC "$EM/good.html" >/dev/null 2>&1
+check "no --clients and no --all is no verdict" "$?" "2"
+# --all is the explicit opt-in. It is allowed to find problems (small regional clients fail
+# on almost anything), so only assert that it is accepted rather than refused.
+EC "$EM/good.html" --all >/dev/null 2>&1; ALLRC=$?
+check "--all is accepted as an explicit choice" "$([ "$ALLRC" -ne 2 ] && echo accepted)" "accepted"
+EC --json "$EM/good.html" --clients gmail >/dev/null 2>&1
+check "flags may come before the file"        "$?" "0"
+node scripts/email-check.mjs "$EM/good.html" --clients gmail --data "$EM/missing.json" >/dev/null 2>&1
+check "unreadable support data is no verdict" "$?" "2"
+ET=$(mktemp -d)
+printf '<html lang="en"><head><title>t</title></head><body style='"'"'display:flex'"'"'><a style="color:red">x</a></body></html>' > "$ET/single.html"
+check "single-quoted style attributes are read" "$(ECJ 'j.problems.some(p=>p.slug==="css-display-flex")?"yes":"no"' "$ET/single.html" --clients outlook)" "yes"
+printf '<html lang="en"><head><title>t</title><style>a:hover{color:red} @media (max-width: 600px){p{margin:0}}</style></head><body><p style="margin:0">x</p></body></html>' > "$ET/parse.html"
+check "selectors and media features are not properties" "$(ECJ 'j.noData.filter(x=>x==="css-a"||x==="css-max-width").length' "$ET/parse.html" --clients outlook)" "0"
+printf '<p>nothing</p>' > "$ET/empty.html"
+EC "$ET/empty.html" --clients gmail >/dev/null 2>&1
+check "an email with no known features is no verdict" "$?" "2"
+# The support feed is third-party data. A hostile one must not be able to drive the terminal.
+node -e 'const f=require("fs");const d=JSON.parse(f.readFileSync(process.argv[1]));for(const x of d.data)if(x.slug==="css-display-flex"){x.title="flex\u001b]0;PWNED\u0007\u001b[2J";x.url="https://example.com/\u001b[31m"}f.writeFileSync(process.argv[2],JSON.stringify(d))' "$EM/caniemail-sample.json" "$ET/hostile.json"
+ESCN=$(node scripts/email-check.mjs "$EM/bad.html" --data "$ET/hostile.json" --clients outlook 2>&1 | LC_ALL=C grep -c "$(printf '\033')")
+check "terminal escapes in the feed never reach the screen" "$ESCN" "0"
+rm -rf "$ET"
 
 echo
 echo "9. Store assets are checked against real store rules"
@@ -343,6 +407,18 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   kill $SRV 2>/dev/null
 else
   printf '  \033[33mSKIP\033[0m  measurement tests (no Chrome found; set CHROME_PATH)\n'
+fi
+
+echo
+echo "12. Disclosure and tab buttons are not held to the call-to-action ceiling"
+# An FAQ question, a tab and a step picker are buttons that carry content. The
+# three-word ceiling is for actions, so treating them as controls failed every FAQ
+# page. A real call to action must still count as a control.
+if [ -x "$CHROME" ]; then
+  TOG=$("$CHROME" --headless=new ${CI:+--no-sandbox} --disable-gpu --virtual-time-budget=3000 --dump-dom "file://$PWD/fixtures/ui/toggles.html" 2>/dev/null | grep -o 'ROLES:{[^<]*}' | head -1)
+  check "toggles are content, a CTA is a control" "$TOG" 'ROLES:{"faq":"item","tab":"item","step":"item","cta":"control"}'
+else
+  printf '  \033[33mSKIP\033[0m  toggle role test (no Chrome found; set CHROME_PATH)\n'
 fi
 
 echo

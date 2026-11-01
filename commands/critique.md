@@ -33,6 +33,11 @@ mobile, then actually read the screenshots against
 - Check the states nobody demos: empty, error, loading, longest plausible content.
 - Check the copy against the product's own language, not category language. Run mikecopy's
   linter over the page's source strings too, when it is installed.
+- Run the deletion test over every string: what would the person lose if it were gone? List the
+  ones that lose nothing as findings, with the proposed cut.
+- Compare to the bar. Load [../core/bar.md](../core/bar.md), choose three to five references in
+  the same category, open them, and put the surface beside each at the same viewport. Write the
+  gaps per principle. The score below is about distance from the bar, not only from the rules.
 
 ## 3. Check for drift
 

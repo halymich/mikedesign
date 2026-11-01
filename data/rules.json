@@ -314,6 +314,62 @@
         "pattern": "\\.system\\(\\s*size:\\s*[\\d.]+(?![^)]*relativeTo)",
         "flags": ""
       }
+    },
+    {
+      "id": "subhead-restates-headline",
+      "severity": "advisory",
+      "scope": "rendered",
+      "surfaces": [
+        "persuade",
+        "operate",
+        "read"
+      ],
+      "title": "Subhead that restates the headline",
+      "why": "A second line under the headline that mostly repeats the headline's own words spends the second most valuable position on the page to say the same thing again. The reader learns nothing new, and the page is longer for it.",
+      "fix": "Delete the subhead. If the headline cannot stand alone, rewrite the headline. Keep a subhead only when it adds something the headline cannot: the mechanism, the proof, the constraint, the next step.",
+      "test": {
+        "type": "restates",
+        "minOverlap": 0.7,
+        "minWords": 2,
+        "stopwords": [
+          "the",
+          "and",
+          "for",
+          "you",
+          "your",
+          "with",
+          "that",
+          "this",
+          "are",
+          "was",
+          "has",
+          "have",
+          "from",
+          "into",
+          "out",
+          "our",
+          "can",
+          "will",
+          "all",
+          "any",
+          "but",
+          "not",
+          "its",
+          "get",
+          "how",
+          "who",
+          "what",
+          "when",
+          "where",
+          "why",
+          "per",
+          "off",
+          "too",
+          "one",
+          "use",
+          "new"
+        ]
+      }
     }
   ],
   "ui": {

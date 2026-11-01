@@ -1,7 +1,7 @@
 ---
 name: mikedesign
-description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, on web and on native iOS or Android. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Product UI (anything a person uses to get something done, like an app screen or a bookings page) is held to measured targets for tap response, layout stability, page weight and WCAG 2.2 AA, with a major third type scale and glass and tactile texture as deliberate tools. Also use when a design feels generic, templated or AI-generated and needs to stop feeling that way. The words on a surface are written by the mikecopy skill, which this skill hands them to. Not for backend work.
-version: 2.0.0
+description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, and transactional and lifecycle email, on web, native iOS or Android, and email clients. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Product UI is held to measured targets for tap response, layout stability, page weight and WCAG 2.2 AA. Also use when a design feels generic, templated or AI-generated. Screens with words are designed in one joint interview with mikecopy, run by grilling, and judged against the best current work from well-resourced teams. Not for backend work.
+version: 2.1.0
 user-invocable: true
 argument-hint: "[system|new|refine|critique|illustrate|screenshots] [target]"
 license: MIT
@@ -25,7 +25,7 @@ The exception is a purely mechanical change where the user already specified the
 "make that button 8px wider" or "change this hex to #0c1425". That is a routine edit, not a
 design decision. Make it and move on.
 
-## The three principles
+## The four principles
 
 **1. Ruthless inquiry.** Never guess a design decision. Interview until the answer exists or is
 recorded as an assumption. `scripts/brief.mjs` enforces this mechanically: it writes an
@@ -33,14 +33,24 @@ recorded as an assumption. `scripts/brief.mjs` enforces this mechanically: it wr
 Do not hand-maintain the assumption list, and never open a report with the work when there are
 assumptions to lead with.
 
+The interview is **one interview for the layout and its words**, run by the `grilling` skill
+until the owner says they are aligned, never a design interview followed by a copy interview.
+See [core/joint-brief.md](core/joint-brief.md).
+
 Ask in batches of up to four, factual questions before visual ones. When two
 readings of a request would produce materially different designs, that is a question, not a
 judgment call.
 
-**2. Minimal text.** Default to showing, not telling. Word ceilings live in `data/rules.json` and
+**2. Minimal text.** Every string earns its place or it is deleted. Default to showing, not
+telling. Word ceilings live in `data/rules.json` and
 vary by surface type, because a limit that is right for a landing page would wreck a privacy
 policy. When copy exceeds its ceiling the fix is a diagram, a mockup, a screenshot or a working
 demonstration. Never smaller type, never a scrollbar, never "it needs the detail".
+
+The deletion test comes before any ceiling: if a string were gone, would the person lose
+anything the design or the next string does not already give them? A subhead that restates its
+headline fails it, and so does helper text under a field whose label already says it. The
+linter catches the first mechanically; the second is a judgment, made in the joint brief.
 
 **3. Zero AI slop.** The tells in `data/rules.json` are what the design community now recognizes
 on sight. Hard rules gate the work. Advisory rules are reported for judgment and never block.
@@ -54,6 +64,13 @@ above a heading is allowed only as the component it actually is, and only in fou
 breadcrumb of working links, a step counter, a byline, a date or chapter number. The rule is in
 [core/craft-floor.md](core/craft-floor.md) for building and in mikecopy's voice guide for
 writing, and the linter measures it as geometry, so case and class name do not get you past it.
+
+**4. The bar is the best work shipped today, not the owner's own.** Work is judged against
+current, world-class interfaces from large, well-resourced design teams, never against the
+owner's earlier work or against what the model remembers. The references are found live for
+each job and combined with the owner's private taste profile, and the skill takes their
+principles, never their look. Nothing in this skill names a team, a style or a trend, because
+those date. See [core/bar.md](core/bar.md).
 
 ## Setup
 
@@ -79,24 +96,35 @@ move rather than inventing one silently inside another command.
 Load exactly one command playbook, the one that owns the request. Then load
 [core/craft-floor.md](core/craft-floor.md) immediately before you write or edit any interface
 code, and the platform file that matches the target:
-[platform/web.md](platform/web.md) or [platform/native.md](platform/native.md).
+[platform/web.md](platform/web.md), [platform/native.md](platform/native.md) or
+[platform/email.md](platform/email.md).
+
+Any command that produces a layout with words in it (`system`, `new`, `refine`, and the surface
+parts of `illustrate`) first loads [core/joint-brief.md](core/joint-brief.md) and
+[core/bar.md](core/bar.md). That is the interview and the standard; the playbooks below say what to
+build once both are done.
 
 Load [core/showing.md](core/showing.md) in every command that produces something a person could
 look at, which is all of them except when a run is purely diagnostic. For interview mechanics,
 load [core/inquiry.md](core/inquiry.md).
 
-**Product UI loads itself.** Every `operate` surface loads [core/ui.md](core/ui.md) on top of the
+**Product UI loads itself.** Every `operate` surface on web or native loads [core/ui.md](core/ui.md) on top of the
 craft floor: measured targets for tap response, layout stability, weight and accessibility, the
 type scale, and when glass and texture are the right tool. No command to remember. A paywall or
-onboarding screen inside an app loads it too, because a person is interacting with it.
+onboarding screen inside an app loads it too, because a person is interacting with it. Email does
+not: its targets are different (see [platform/email.md](platform/email.md)), and `measure.mjs`
+does not apply to an inbox.
 
 ## Words
 
-The words on a surface are written by the **mikecopy** skill, in the voice recorded at
-`brand.voice` in `DESIGN.md`. When a command needs copy (headlines, labels, empty states, errors,
-email), build the structure, then load mikecopy's `SKILL.md` and its `modes/product.md` and write
-the words under its rules, without asking the user a second routing question. Asking to "make
-the copy better" on its own is mikecopy's job, not this skill's.
+Words and layout are decided together. The joint interview in
+[core/joint-brief.md](core/joint-brief.md) settles the string inventory and runs the deletion test
+before anything is drafted. Then the surviving strings go to the **mikecopy** skill, which writes
+them in the voice recorded at `brand.voice` in `DESIGN.md`, under its rules, without a second
+routing question to the owner. mikecopy takes part in the same interview rather than starting its
+own, so the owner answers each question once.
+
+Asking only to "make the copy better" is mikecopy's job on its own, not this skill's.
 
 If mikecopy is not installed, write serviceable interface copy yourself, keep the voice record
 intact, and say in the report that the words were not checked. The linter says the same.
@@ -212,8 +240,15 @@ Never report a design as done on the strength of having written it. Evidence, in
    It measures tap response, layout shift, weight and WCAG 2.2 AA on a slowed phone profile and
    on desktop. A miss is reported with its number for the user to decide; it does not block on
    its own. See [core/ui.md](core/ui.md).
-6. **Look.** Screenshot desktop and mobile, and actually read the screenshots. The linter cannot
+6. **Compare to the bar.** Put the result next to each reference at the same viewport and list
+   the gaps, per [core/bar.md](core/bar.md). A design that clears the linter and falls short of the
+   bar has not finished.
+7. **Look.** Screenshot desktop and mobile, and actually read the screenshots. The linter cannot
    see composition, rhythm or whether the thing is any good.
+
+For an email, step 5 is `node $S/email-check.mjs <email.html>`, which looks up every feature the
+email uses in live support data, followed by the dark mode, images-off and phone-width looks in
+[platform/email.md](platform/email.md).
 
 Exit 0 is clean, 1 means hard findings, 2 means no verdict was possible. **Exit 2 is not a
 pass.** If the linter reports partial coverage, say so in the report rather than describing the
@@ -238,6 +273,7 @@ warrants, and what to do when there is nobody to ask.
 
 ## Reporting
 
-End every run with, in this order: the assumptions on record, what changed in plain terms, what
+End every run with, in this order: the assumptions on record, what changed in plain terms, the
+references used with the principle taken from each and the gaps that remain against them, what
 the verification actually showed (with the coverage numbers, and for product UI the table of
 targets met and missed), and what needs the user's decision. If nothing needs them, say so explicitly.

@@ -65,8 +65,21 @@ const COPY_FIELDS = [
   ['never-say',       'Words, phrases and framings this owner would not use. Quoted, not described.'],
 ];
 
+/*
+ * Extra fields for a `joint` brief: the surface has a layout AND words, and they
+ * are decided in one interview rather than in sequence. The base fields carry the
+ * design questions; these carry the writing questions and the bar, so neither half
+ * is guessed because the other half asked first.
+ */
+const JOINT_FIELDS = [
+  ...COPY_FIELDS.filter(([k]) => k !== 'voice-source'),
+  ['string-inventory', 'Every piece of text the surface needs, one line each, with the job it does. After the deletion test.'],
+  ['bar',              'The 3 to 5 references and the principle taken from each, or "unchecked" with the reason.'],
+];
+
 const FIELD_SETS = {
   base: BASE_FIELDS,
+  joint: [...BASE_FIELDS, ...JOINT_FIELDS],
   system: [...BASE_FIELDS, ...SYSTEM_FIELDS],
   copy: [...BASE_FIELDS, ...COPY_FIELDS],
 };
@@ -109,7 +122,7 @@ if (cmd === 'init') {
   // whole point of that command.
   const setName = fi > -1 ? argv[fi + 1] : (surface === 'system' ? 'system' : 'base');
   const set = FIELD_SETS[setName];
-  if (!set) fail(`unknown field set "${setName}". Expected base or system.`);
+  if (!set) fail(`unknown field set "${setName}". Expected base, system, joint or copy.`);
 
   const dir = join(root, '.mikedesign');
   const path = join(dir, `brief-${surface}.md`);

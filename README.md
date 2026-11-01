@@ -69,7 +69,7 @@ critique files are regenerable and belong in `.gitignore`.
 | `illustrate <subject>` | Software mockups, interface illustrations, data-flow diagrams |
 | `screenshots` | App Store and Play Store listing panels and app preview videos |
 
-## The three principles
+## The principles
 
 **Ruthless inquiry.** `scripts/brief.mjs` writes an `ASSUMED:` stub for every unanswered field
 and exits non-zero until each has a reason. It is not possible to reach a clean brief while
@@ -92,6 +92,28 @@ because a strict linter that cries wolf gets switched off.
 **Show the work.** Every command that produces something a person could look at ends by handing
 them a link they can open, then stops and asks. Verification is evidence for the model; showing
 is evidence for the user, and a clean lint has never meant the design was any good.
+
+## One interview for the layout and its words
+
+A screen and its words are one decision, so they are decided in one interview. The `grilling`
+skill runs it, mikedesign and [mikecopy](https://github.com/halymich/mikecopy) each supply their
+questions, and the owner answers each question once. The result is a joint brief
+(`brief.mjs init ... --fields joint`) with the design answers, the writing answers, the string
+inventory and the references. Every string goes through a deletion test before it is drafted, and
+the linter flags a subhead that restates its headline. See `core/joint-brief.md`.
+
+## The bar is the best work shipped today
+
+Work is compared with current, world-class interfaces from well-resourced teams, found live for
+each job and combined with the owner's private taste profile (`taste-personal.md`, kept outside
+this public repository). The skill takes their principles, never their look, and names no team,
+style or number that would date. See `core/bar.md`.
+
+## Email
+
+`platform/email.md` covers transactional and lifecycle email. `scripts/email-check.mjs` reads an
+email, finds the HTML and CSS features it uses, and looks each up in the live support data at
+caniemail.com, so nothing about what email clients support is stored in this skill.
 
 ## Product UI is measured, not admired
 
