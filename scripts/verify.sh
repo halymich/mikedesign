@@ -208,6 +208,13 @@ EOF
 check "persuade on web: advisory"               "$(eyesev --design "$EY/DESIGN.md" --target site)" "advisory"
 check "a native paywall (persuade, ios): hard"  "$(eyesev --design "$EY/DESIGN.md" --target app)" "hard"
 check "an email (persuade, email): hard"        "$(eyesev --design "$EY/DESIGN.md" --target mail)" "hard"
+cat > "$EY/DESIGN.md" <<'EOF'
+```json
+{ "brand": {}, "targets": { "bare": { "surfaceType": "persuade" }, "upper": { "platform": "Web", "surfaceType": "persuade" } } }
+```
+EOF
+check "a target with no platform fails closed: hard" "$(eyesev --design "$EY/DESIGN.md" --target bare)" "hard"
+check "platform is matched without regard to case"   "$(eyesev --design "$EY/DESIGN.md" --target upper)" "advisory"
 rm -rf "$EY"
 
 echo "8a. A subhead that restates its headline is caught"
