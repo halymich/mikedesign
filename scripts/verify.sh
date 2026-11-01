@@ -384,6 +384,18 @@ else
 fi
 
 echo
+echo "12. Disclosure and tab buttons are not held to the call-to-action ceiling"
+# An FAQ question, a tab and a step picker are buttons that carry content. The
+# three-word ceiling is for actions, so treating them as controls failed every FAQ
+# page. A real call to action must still count as a control.
+if [ -x "$CHROME" ]; then
+  TOG=$("$CHROME" --headless=new ${CI:+--no-sandbox} --disable-gpu --virtual-time-budget=3000 --dump-dom "file://$PWD/fixtures/ui/toggles.html" 2>/dev/null | grep -o 'ROLES:{[^<]*}' | head -1)
+  check "toggles are content, a CTA is a control" "$TOG" 'ROLES:{"faq":"item","tab":"item","step":"item","cta":"control"}'
+else
+  printf '  \033[33mSKIP\033[0m  toggle role test (no Chrome found; set CHROME_PATH)\n'
+fi
+
+echo
 echo "-----------------------------------------"
 printf '  %d passed, %d failed\n\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
