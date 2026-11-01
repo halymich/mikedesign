@@ -38,6 +38,10 @@ brand colour is while it is sitting in their CSS.
 
 ## 3. Interview
 
+Run it as the joint interview in [../core/joint-brief.md](../core/joint-brief.md), which includes
+the voice questions mikecopy needs for `brand.voice`, so the system and its voice are settled in
+one conversation.
+
 Load [../core/inquiry.md](../core/inquiry.md). Scaffold and check the brief:
 
 ```
@@ -90,6 +94,10 @@ exists to prevent.
 same argument and quietly builds it anyway.
 
 ## 5. Three concepts, rendered
+
+Load [../core/bar.md](../core/bar.md) first and build the concepts from the principles taken from
+the references, never from remembered looks or from the owner's earlier work. Each concept still
+differs from the references and from the other two; what they share with the bar is discipline.
 
 Not descriptions. Three real, working, viewable sections the user can look at side by side.
 People react accurately to pixels and inaccurately to adjectives, and this step exists to stop

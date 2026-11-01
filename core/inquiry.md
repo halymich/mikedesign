@@ -9,6 +9,13 @@ Never guess a design decision. Two outcomes are acceptable for any required fiel
 answered it, or it is recorded as an assumption with a reason. There is no third acceptable
 outcome, and "it seemed obvious" is the guess this exists to catch.
 
+## Joint with the words
+
+Most surfaces have words. The interview is then the one described in
+[joint-brief.md](joint-brief.md), run by the `grilling` skill, and the questions below are the
+design half of it. Read this file for how to ask the design questions well, and joint-brief.md
+for how the whole interview runs.
+
 ## Mechanics
 
 ```

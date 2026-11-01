@@ -127,6 +127,16 @@ node scripts/brief.mjs check "$SB" >/dev/null 2>&1
 check "scope fields are enforced"   "$(grep -c 'ASSUMED:' "$SB")" "11"
 # and a plain surface must NOT inherit them
 check "base brief stays base"       "$(grep -c '^- surfaces:' "$B/.mikedesign/brief-home.md")" "0"
+
+# A joint brief carries the writing questions and the bar beside the design ones,
+# so the words are never an afterthought to the layout.
+node scripts/brief.mjs init "$B" feature --type operate --fields joint >/dev/null 2>&1
+JB="$B/.mikedesign/brief-feature.md"
+for f in the-claim never-say string-inventory bar; do
+  if grep -q "^- $f:" "$JB"; then ok "joint brief requires $f"; else bad "joint brief requires $f"; fi
+done
+node scripts/brief.mjs check "$JB" >/dev/null 2>&1
+check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "14"
 rm -rf "$B"
 
 echo
@@ -177,6 +187,34 @@ check "permitted components do not fire"       "$(eyebrow "$CLEAN")" "0"
 CTA=$(node scripts/lint.mjs --rendered "$SLOP" --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="eyebrow-label"&&/Get started/.test(f.evidence)).length)})')
 check "a CTA above a heading is not an eyebrow" "$CTA" "0"
+
+echo "8a. A subhead that restates its headline is caught"
+# Derived from the clean snapshot so the clean page stays the single source of truth:
+# swap the real subhead for one that repeats the headline's words.
+RT=$(mktemp -d)
+node -e 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const e of d.elements)if(e.role==="subhead")e.text="Know when your hotel price drops, the moment it does.";require("fs").writeFileSync(process.argv[2],JSON.stringify(d))' "$CLEAN" "$RT/restate.json"
+restate() { node scripts/lint.mjs --rendered "$1" --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="subhead-restates-headline").length)})'; }
+check "a restating subhead is flagged"        "$(restate "$RT/restate.json")" "1"
+check "a subhead that adds something is not"  "$(restate "$CLEAN")" "0"
+rm -rf "$RT"
+
+echo
+echo "8b. Email support is checked against support data, not memory"
+EM=fixtures/email
+node scripts/email-check.mjs "$EM/bad.html" --data "$EM/caniemail-sample.json" --clients gmail,outlook >/dev/null 2>&1
+check "unsupported features exit 1"           "$?" "1"
+node scripts/email-check.mjs "$EM/good.html" --data "$EM/caniemail-sample.json" --clients gmail,outlook >/dev/null 2>&1
+check "a safe email exits 0"                  "$?" "0"
+BADFLEX=$(node scripts/email-check.mjs "$EM/bad.html" --data "$EM/caniemail-sample.json" --clients outlook --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.problems.some(p=>p.slug==="css-display-flex")&&j.structural.length>0?"yes":"no")})')
+check "flex is flagged and basics are reported" "$BADFLEX" "yes"
+node scripts/email-check.mjs "$EM/good.html" --data "$EM/missing.json" >/dev/null 2>&1
+check "unreadable support data is no verdict" "$?" "2"
+printf '<p>nothing</p>' > "${TMPDIR:-/tmp}/md-empty-email.html"
+node scripts/email-check.mjs "${TMPDIR:-/tmp}/md-empty-email.html" --data "$EM/caniemail-sample.json" >/dev/null 2>&1
+check "an email with no known features is no verdict" "$?" "2"
+rm -f "${TMPDIR:-/tmp}/md-empty-email.html"
 
 echo
 echo "9. Store assets are checked against real store rules"
