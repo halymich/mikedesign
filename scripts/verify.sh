@@ -236,6 +236,10 @@ check "selectors and media features are not properties" "$(ECJ 'j.noData.filter(
 printf '<p>nothing</p>' > "$ET/empty.html"
 EC "$ET/empty.html" --clients gmail >/dev/null 2>&1
 check "an email with no known features is no verdict" "$?" "2"
+# The support feed is third-party data. A hostile one must not be able to drive the terminal.
+node -e 'const f=require("fs");const d=JSON.parse(f.readFileSync(process.argv[1]));for(const x of d.data)if(x.slug==="css-display-flex"){x.title="flex\u001b]0;PWNED\u0007\u001b[2J";x.url="https://example.com/\u001b[31m"}f.writeFileSync(process.argv[2],JSON.stringify(d))' "$EM/caniemail-sample.json" "$ET/hostile.json"
+ESCN=$(node scripts/email-check.mjs "$EM/bad.html" --data "$ET/hostile.json" --clients outlook 2>&1 | LC_ALL=C grep -c "$(printf '\033')")
+check "terminal escapes in the feed never reach the screen" "$ESCN" "0"
 rm -rf "$ET"
 
 echo

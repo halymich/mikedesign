@@ -38,7 +38,12 @@ const wantClients = flag('--clients') ? flag('--clients').split(',').map((s) => 
 const dataFile = flag('--data');
 const all = argv.includes('--all');
 
-const bail = (msg) => { console.error(`email-check: ${msg}`); process.exit(2); };
+// Everything printed can contain text from the email or from the support feed, both
+// outside this process. Strip control characters (keeping newline and tab) so a hostile
+// feed cannot drive the reader's terminal with escape sequences.
+const clean = (t) => String(t).replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, '');
+const log = (...a) => console.log(clean(a.join(' ')));
+const bail = (msg) => { console.error(clean(`email-check: ${msg}`)); process.exit(2); };
 if (!file || !existsSync(file)) bail('usage: email-check.mjs <email.html> --clients a,b [--all] [--data file] [--json] [--verbose]');
 if (!wantClients && !all) bail('name the clients that matter with --clients gmail,outlook,... (or pass --all to check every client in the data)');
 
@@ -139,30 +144,30 @@ const result = {
 };
 
 if (asJson) {
-  console.log(JSON.stringify(result, null, 2));
+  log(JSON.stringify(result, null, 2));
 } else {
   const label = (b) => `${names.family?.[b.family] || b.family} ${names.platform?.[b.platform] || b.platform}`;
-  console.log(`email-check  ${file}  (${(bytes / 1024).toFixed(1)} KB)`);
-  console.log(`  support data: caniemail.com, updated ${feed.last_update_date}; clients: ${result.clients}`);
-  console.log(`  features found in the email and looked up: ${rows.length}\n`);
+  log(`email-check  ${file}  (${(bytes / 1024).toFixed(1)} KB)`);
+  log(`  support data: caniemail.com, updated ${feed.last_update_date}; clients: ${result.clients}`);
+  log(`  features found in the email and looked up: ${rows.length}\n`);
   for (const p of problems) {
     const unsup = p.bad.filter((b) => b.status === 'unsupported').map(label);
     const part = p.bad.filter((b) => b.status === 'partial').map(label);
-    console.log(`  ${p.title}   [${p.saw}]`);
-    console.log(`      unsupported: ${unsup.join(', ')}`);
-    if (verbose && part.length) console.log(`      partial:     ${part.join(', ')}`);
-    console.log(`      ${p.url}`);
+    log(`  ${p.title}   [${p.saw}]`);
+    log(`      unsupported: ${unsup.join(', ')}`);
+    if (verbose && part.length) log(`      partial:     ${part.join(', ')}`);
+    log(`      ${p.url}`);
   }
-  if (!problems.length) console.log('  Nothing found is unsupported in the clients checked.');
+  if (!problems.length) log('  Nothing found is unsupported in the clients checked.');
   if (caveats.length) {
-    console.log(`\n  Works with caveats in some clients (${caveats.length}): ${caveats.map((c) => c.title).join('; ')}`);
-    if (verbose) for (const c of caveats) console.log(`      ${c.title}: ${c.bad.map(label).join(', ')}  ${c.url}`);
-    else console.log('      Run with --verbose for which clients and the linked notes.');
+    log(`\n  Works with caveats in some clients (${caveats.length}): ${caveats.map((c) => c.title).join('; ')}`);
+    if (verbose) for (const c of caveats) log(`      ${c.title}: ${c.bad.map(label).join(', ')}  ${c.url}`);
+    else log('      Run with --verbose for which clients and the linked notes.');
   }
-  if (structural.length) { console.log('\n  Basics:'); structural.forEach((s) => console.log(`      ${s}`)); }
-  if (noData.length) console.log(`\n  No support data for: ${noData.join(', ')} (verify these by hand)`);
-  console.log('\n  This is support data, not a rendering test. Dark mode, images off and phone width');
-  console.log('  still need to be looked at. See platform/email.md.');
+  if (structural.length) { log('\n  Basics:'); structural.forEach((s) => log(`      ${s}`)); }
+  if (noData.length) log(`\n  No support data for: ${noData.join(', ')} (verify these by hand)`);
+  log('\n  This is support data, not a rendering test. Dark mode, images off and phone width');
+  log('  still need to be looked at. See platform/email.md.');
 }
 
 if (!rows.length) bail('no known email features were found in this file, so there is no verdict');
