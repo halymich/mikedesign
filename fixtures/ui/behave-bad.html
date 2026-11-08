@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takes</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; }
+  li { display: flex; gap: 12px; align-items: center; padding: 8px 0; }
+  button { font: inherit; padding: 8px 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Takes</h1>
+  <ul id="list">
+    <li>Intro <button class="del">Delete</button></li>
+    <li>Interview <button class="del">Delete</button></li>
+    <li>Outro <button class="del">Delete</button></li>
+  </ul>
+</main>
+<script>
+  // Every behaviour failure at once: no pressed state, a long wait with nothing
+  // on screen, a result nobody announces, no way back, and a failure that is
+  // silently swallowed.
+  document.getElementById('list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.del');
+    if (!btn) return;
+    const li = btn.closest('li');
+    // The test server takes 1.5 s to answer ?slow=1.
+    fetch('/api/delete?slow=1', { method: 'POST' })
+      .then(() => li.remove())
+      .catch(() => {});
+  });
+</script>
+</body>
+</html>

@@ -136,7 +136,22 @@ for f in the-claim never-say string-inventory bar; do
   if grep -q "^- $f:" "$JB"; then ok "joint brief requires $f"; else bad "joint brief requires $f"; fi
 done
 node scripts/brief.mjs check "$JB" >/dev/null 2>&1
-check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "14"
+# 15 = 14 joint gaps + behaviour-model; convention-source gets no stub (below)
+check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "15"
+
+# On a product screen, the tool the person already uses cannot be assumed. An
+# invented interaction model is the failure it exists to stop, so a reason
+# cannot stand in for the answer, and a bare "none" says nobody looked.
+bc() { node scripts/brief.mjs check "$JB" --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.mustAsk.join(",")||"none",j.clean)})'; }
+sed -i.bak -E 's/<reason required>/stated by the test/' "$JB"
+check "an operate brief must ask convention-source" "$(bc)" "convention-source false"
+printf -- '- ASSUMED: convention-source :: it seemed obvious\n' >> "$JB"
+check "an assumption does not satisfy it"           "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: none/' "$JB"
+check "a bare none does not satisfy it"             "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: FL Studio playlist: P selects, C slices, right-click slices/' "$JB"
+check "a real answer does"                          "$(bc)" "none true"
+check "persuade briefs do not carry it"             "$(grep -c '^- convention-source:' "$B/.mikedesign/brief-home.md")" "0"
 rm -rf "$B"
 
 echo
@@ -402,7 +417,9 @@ echo
 echo "11. Product UI measurement in a real browser"
 if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   PORT=8931
-  node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)})}).listen(+process.argv[1])' $PORT &
+  # Serves fixtures/ui; any request carrying slow=1 is answered after 1.5 s, which
+  # stands in for a slow server in the behaviour fixtures.
+  node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));const go=()=>f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)});/[?&]slow=1/.test(q.url)?setTimeout(go,1500):go()}).listen(+process.argv[1])' $PORT &
   SRV=$!; sleep 0.5
   MERR=$(mktemp)
   mj() { node scripts/measure.mjs "http://127.0.0.1:$PORT/$1" --profile desktop --json 2>>"$MERR"; }
@@ -433,6 +450,25 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   fi
   node scripts/measure.mjs "http://127.0.0.1:1/nothing" --profile desktop --json >/dev/null 2>&1
   check "unreachable page is no verdict"      "$?" "2"
+
+  echo
+  echo "11a. Behaviour checks in a real browser"
+  bj() { node scripts/behave.mjs "http://127.0.0.1:$PORT/$1" --action "$2" --profile desktop --json 2>>"$MERR"; }
+  BG=$(bj behave-good.html '.del[data-name="Intro"]'); BGX=$?
+  check "a well-behaved action meets every check"   "$BGX" "0"
+  check "undo found through the visible control"    "$(jget "$BG" "j.runs[0].checks.undo.value")" "visible Undo control"
+  BS=$(bj 'behave-good.html?slow' '.del[data-name="Intro"]')
+  check "a slow action with a pending row shows it is working" "$(jget "$BS" "j.runs[0].checks.waiting.status")" "met"
+  BB=$(bj behave-bad.html '.del'); BBX=$?
+  check "every behaviour failure is caught" "$(jget "$BB" "['acknowledged','announced','waiting','undo','failure'].map(k=>j.runs[0].checks[k].status).join(',')")" "miss,miss,miss,miss,miss"
+  check "a behaviour miss exits 1"                  "$BBX" "1"
+  bj behave-good.html '#no-such-action' >/dev/null
+  check "a missing action is no verdict"            "$?" "2"
+  # Safety: it really performs the action, so it refuses anything that is not local.
+  node scripts/behave.mjs "https://example.com/" --action a --json >/dev/null 2>&1
+  check "a remote address is refused"               "$?" "2"
+  BLEFT=$(ls -d "${TMPDIR:-/tmp}"/mikedesign-behave-* 2>/dev/null | wc -l | tr -d ' ')
+  check "no temporary behaviour profile left behind" "$BLEFT" "0"
   kill $SRV 2>/dev/null
 else
   printf '  \033[33mSKIP\033[0m  measurement tests (no Chrome found; set CHROME_PATH)\n'

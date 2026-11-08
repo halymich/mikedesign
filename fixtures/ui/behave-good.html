@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takes</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; color: #1c1b19; background: #f6f4ef; }
+  li { display: flex; gap: 12px; align-items: center; padding: 8px 0; }
+  li.pending { opacity: .5; }
+  button { font: inherit; padding: 8px 12px; border: 1px solid #8a857a; background: #fff; border-radius: 6px; }
+  button:active { transform: scale(.97); background: #e9e5dc; }
+  #toast:empty { display: none; }
+  #toast { position: fixed; bottom: 16px; left: 16px; background: #1c1b19; color: #fff; padding: 8px 12px; border-radius: 6px; }
+  #toast button { margin-left: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Takes</h1>
+  <ul id="list">
+    <li data-name="Intro">Intro <button class="del" data-name="Intro">Delete</button></li>
+    <li data-name="Interview">Interview <button class="del" data-name="Interview">Delete</button></li>
+    <li data-name="Outro">Outro <button class="del" data-name="Outro">Delete</button></li>
+  </ul>
+</main>
+<div id="toast" role="status"></div>
+<div id="problem" role="alert"></div>
+<script>
+  // Optimistic delete with a pending state, a status message with Undo, and a
+  // failure that puts the row back and says why. The behaviour this skill asks for.
+  const list = document.getElementById('list');
+  const toast = document.getElementById('toast');
+  const problem = document.getElementById('problem');
+  let removed = null;
+
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('.del');
+    if (!btn) return;
+    const li = btn.closest('li');
+    const name = li.dataset.name;
+    const next = li.nextElementSibling;
+    li.classList.add('pending');
+    li.setAttribute('aria-busy', 'true');
+    // ?slow asks the test server to take 1.5 s: the pending row is the working cue.
+    const slow = /slow/.test(location.search) ? '&slow=1' : '';
+    fetch('/api/delete?take=' + encodeURIComponent(name) + slow, { method: 'POST' })
+      .then(() => {
+        li.removeAttribute('aria-busy');
+        removed = { li, next };
+        li.remove();
+        li.classList.remove('pending');
+        toast.innerHTML = '';
+        toast.append('Deleted ' + name + '. ');
+        const undo = document.createElement('button');
+        undo.textContent = 'Undo';
+        undo.addEventListener('click', () => {
+          list.insertBefore(removed.li, removed.next);
+          toast.textContent = 'Restored ' + name + '.';
+          removed = null;
+        });
+        toast.append(undo);
+      })
+      .catch(() => {
+        li.classList.remove('pending');
+        li.removeAttribute('aria-busy');
+        problem.textContent = "Couldn't delete " + name + ". You're offline; try again.";
+      });
+  });
+</script>
+</body>
+</html>

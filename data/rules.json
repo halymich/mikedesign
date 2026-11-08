@@ -389,7 +389,8 @@
       "inpMs": 200,
       "cls": 0.05,
       "jsKb": 150,
-      "fontFiles": 2
+      "fontFiles": 2,
+      "ackMs": 100
     },
     "axe": {
       "version": "4.13.0",
