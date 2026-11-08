@@ -60,7 +60,15 @@ section you are least sure earns its place, and ask. See [../core/showing.md](..
 for how many gates this surface warrants; a page inside an already-approved direction needs only
 the one at the end.
 
-## 5. Build
+## 5. Behaviour, on a product screen
+
+For an `operate` surface whose behaviour has not been approved yet, load
+[../core/behaviour.md](../core/behaviour.md), build the grey prototype from `convention-source`,
+and hold the behaviour gate before any styling. A new screen inside an approved model skips the
+gate but still builds to that model: the same states, the same undo, the same keys. Record the
+model in the brief's `behaviour-model` field.
+
+## 6. Build
 
 Load [../core/craft-floor.md](../core/craft-floor.md) and the matching platform file, plus
 [../core/ui.md](../core/ui.md) when the surface is `operate` on web or native. Hand the surviving
@@ -72,15 +80,16 @@ Text stays under budget by showing instead of telling. When a section needs more
 has, that is usually the signal it should be a mockup, a diagram or a demonstration. Reach for
 `illustrate`.
 
-## 6. Verify
+## 7. Verify
 
-Render, collect, lint, measure if it is product UI, screenshot desktop and mobile, read the
-screenshots, and compare the result to each reference per [../core/bar.md](../core/bar.md):
+Render, collect, lint, measure if it is product UI, run the behaviour check and walkthrough in
+[../core/behaviour.md](../core/behaviour.md) if it is product UI, screenshot desktop and mobile,
+read the screenshots, and compare the result to each reference per [../core/bar.md](../core/bar.md):
 principle by principle, listing the gaps and the reason each one stays. Fix everything one
 round shows, confirm with at most one more round, then stop. Open-ended self-review costs the
 user money and finds less than one careful look.
 
-## 7. Show it, and stop
+## 8. Show it, and stop
 
 Verification proved the surface broke no rule. It cannot tell you the surface is any good, and
 you are not the one who gets to decide that.

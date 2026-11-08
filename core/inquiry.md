@@ -51,6 +51,14 @@ it. Being a thought partner means having a view.
 question whose answer is sitting in the stylesheet wastes the user's attention and spends
 credibility you will need for the questions that matter.
 
+**On a product screen, ask which tool they already use for this job.** Every time, with no
+default answer. Then ask which parts of its model their hands already know: the layout, what a
+click and a drag do, how selection works, the keys. This is `convention-source` in the brief,
+and it is the one field `brief.mjs` will not let you assume, because an interaction model nobody
+asked about is the most expensive thing this skill can get wrong: it looks fine in a screenshot
+and is only found when the owner tries to work in it. "None" is a real answer when it says what
+was checked. See [behaviour.md](behaviour.md).
+
 **Ask about the enemy.** "What should this not look like" is worth three positive references.
 People describe taste far more precisely in the negative.
 

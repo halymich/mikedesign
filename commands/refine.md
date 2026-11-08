@@ -5,6 +5,9 @@ Improve something that already exists, without quietly redesigning it.
 ## What refinement means
 
 Preserve the identity, the behaviour, the copy and everything outside the scope you were given.
+Behaviour means the approved model in the brief's `behaviour-model` field: the states, the undo,
+the keys and the convention it follows. A polish pass that changes what a click or a key does has
+changed the product, however small the diff looks.
 The user asked for an improvement to this thing, not a replacement for it. If you believe the
 whole direction is wrong, say so in a sentence and ask, rather than delivering a redesign under
 the heading of a polish pass. Splitting the difference is the worst of the three: polish applied
@@ -50,7 +53,9 @@ supply, leave it and flag it. Do not invent content to close a finding.
 
 ## 4. Verify
 
-Re-render, re-collect, re-lint, and compare against the findings you set out to fix. Then compare
+Re-render, re-collect, re-lint, and compare against the findings you set out to fix. On a product
+screen, re-run `behave.mjs` on the main action and confirm the behaviour still matches the
+approved model. Then compare
 the result to the references in [../core/bar.md](../core/bar.md), principle by principle, and
 list the gaps that remain.
 
