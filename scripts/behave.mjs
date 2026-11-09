@@ -2,7 +2,8 @@
 /*
  * mikedesign behaviour check.
  *
- *   node behave.mjs <url> --action <css selector> [--undo <css selector>] [--scope <css selector>]
+ *   node behave.mjs <url> --action <css selector> [--prepare <css selector>]... [--fail-switch <css selector>]
+ *                         [--undo <css selector>] [--scope <css selector>]
  *                         [--profile mobile|desktop|both] [--design <DESIGN.md>] [--target <name>]
  *                         [--allow-remote] [--headed] [--json]
  *
@@ -23,11 +24,18 @@
  *                 "Undo", else Cmd+Z / Ctrl+Z) put the screen back the way it was.
  *                 Compared as the visible text of --scope (default: main, else
  *                 body) with live regions left out.
- *   failure       the same press, made on a fresh load with the network offline,
- *                 told the person something went wrong instead of failing
- *                 silently or looking like success. Only judged when the action
- *                 makes a network request; otherwise it is reported as not
- *                 measured, and the failure path is checked by hand.
+ *   failure       the same press, made on a fresh load with the failure switched
+ *                 on, told the person something went wrong instead of failing
+ *                 silently or looking like success. The failure is the page's own
+ *                 simulate-failure control (--fail-switch) when given, which suits
+ *                 a product whose real failure is a full disk rather than the
+ *                 network; otherwise the network goes offline, and that is only
+ *                 judged when the action makes a request.
+ *
+ * --prepare clicks controls before the press, in order, for an action that
+ * needs a selection first (select a clip, then delete it). A disabled action is
+ * refused rather than pressed, because a browser's own pressed style on a
+ * button that does nothing would otherwise read as an acknowledgement.
  *
  * What it cannot see: whether the states are clear to a person, whether the
  * model is the right one, and whether a convention was broken for a reason.
@@ -54,10 +62,12 @@ const RULES = JSON.parse(readFileSync(join(HERE, '..', 'data', 'rules.json'), 'u
 /* ---------- args ---------- */
 
 const argv = process.argv.slice(2);
-const opt = { url: null, action: null, undo: null, scope: null, profile: 'both', design: null, target: null, allowRemote: false, headed: false, json: false, out: null };
+const opt = { url: null, action: null, prepare: [], failSwitch: null, undo: null, scope: null, profile: 'both', design: null, target: null, allowRemote: false, headed: false, json: false, out: null };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--action') opt.action = argv[++i];
+  else if (a === '--prepare') opt.prepare.push(argv[++i]);
+  else if (a === '--fail-switch') opt.failSwitch = argv[++i];
   else if (a === '--undo') opt.undo = argv[++i];
   else if (a === '--scope') opt.scope = argv[++i];
   else if (a === '--profile') opt.profile = argv[++i];
@@ -72,7 +82,7 @@ for (let i = 0; i < argv.length; i++) {
   else opt.url = a;
 }
 function usage() {
-  console.error('usage: behave.mjs <url> --action <selector> [--undo <selector>] [--scope <selector>] [--profile mobile|desktop|both] [--design DESIGN.md] [--target name] [--allow-remote] [--headed] [--json] [--out file.json]');
+  console.error('usage: behave.mjs <url> --action <selector> [--prepare <selector>]... [--fail-switch <selector>] [--undo <selector>] [--scope <selector>] [--profile mobile|desktop|both] [--design DESIGN.md] [--target name] [--allow-remote] [--headed] [--json] [--out file.json]');
 }
 if (!opt.url || !opt.action) { usage(); process.exit(2); }
 if (!['mobile', 'desktop', 'both'].includes(opt.profile)) { console.error(`unknown profile "${opt.profile}"`); process.exit(2); }
@@ -194,11 +204,12 @@ const PROFILES = {
 
 /* ---------- one pass ---------- */
 
-async function pass(profileName, { offline }) {
+async function pass(profileName, { fail }) {
+  const offline = fail === 'offline';
   const p = PROFILES[profileName];
   const chrome = await launchChrome({ headed: opt.headed, label: 'mikedesign-behave' });
   const cdp = await connect(chrome.wsUrl);
-  const out = { offline };
+  const out = { fail };
   try {
     const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
     const { sessionId: s } = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
@@ -240,6 +251,28 @@ async function pass(profileName, { offline }) {
       if (!localAddress(here)) throw new Error(`the page moved to ${here}, which is not a local address; nothing was pressed`);
     };
     await stillLocal();
+
+    const centre = (sel) => ev(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+    const click = async (sel, what) => {
+      const pt = await centre(sel);
+      if (!pt) throw new Error(`${what} not found: ${sel}`);
+      if (p.metrics.mobile) {
+        await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pt.x, y: pt.y }] });
+        await sleep(50);
+        await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      } else {
+        await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pt.x, y: pt.y });
+        await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pt.x, y: pt.y, button: 'left', clickCount: 1 });
+        await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'left', clickCount: 1 });
+      }
+      await sleep(300);
+    };
+    for (const sel of opt.prepare) await click(sel, 'prepare step');
+    if (fail === 'switch') await click(opt.failSwitch, 'failure switch');
+    if (opt.prepare.length || fail === 'switch') await sleep(500);
+
+    const disabled = await ev(`(() => { const el = document.querySelector(${JSON.stringify(opt.action)}); return !!el && (el.disabled === true || el.getAttribute('aria-disabled') === 'true' || !!el.closest('fieldset[disabled], [inert]')); })()`);
+    if (disabled) throw new Error(`the action is disabled, so pressing it proves nothing; use --prepare to get the screen into a state where it works`);
 
     const box = await ev(`(() => { const el = document.querySelector(${JSON.stringify(opt.action)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
     if (!box) throw new Error(`action not found: ${opt.action}`);
@@ -300,25 +333,16 @@ async function pass(profileName, { offline }) {
     out.timedOut = timedOut;
     out.after = await ev(FINGERPRINT(opt.scope));
 
-    if (!offline) {
+    if (!fail) {
       // The action may have navigated; never act on a page that is not local.
       await stillLocal();
       // Undo: the given route, else a visible Undo control, else the platform key.
       let route = null;
       const undoSel = opt.undo || await ev(FIND_UNDO);
       if (undoSel) {
-        const ub = await ev(`(() => { const el = document.querySelector(${JSON.stringify(undoSel)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
-        if (ub) {
+        if (await centre(undoSel)) {
           route = opt.undo ? `given control ${opt.undo}` : 'visible Undo control';
-          if (p.metrics.mobile) {
-            await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ub.x, y: ub.y }] });
-            await sleep(50);
-            await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-          } else {
-            await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: ub.x, y: ub.y });
-            await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: ub.x, y: ub.y, button: 'left', clickCount: 1 });
-            await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: ub.x, y: ub.y, button: 'left', clickCount: 1 });
-          }
+          await click(undoSel, 'undo control');
         } else if (opt.undo) {
           out.notes = [`undo control not found: ${opt.undo}`];
         }
@@ -355,14 +379,16 @@ function firstDifference(a, b) {
 async function profileRun(name) {
   const result = { profile: name, label: PROFILES[name].label, notes: [] };
   try {
-    const on = await pass(name, { offline: false });
+    const on = await pass(name, { fail: null });
     if (on.notes) result.notes.push(...on.notes);
     if (on.timedOut) result.notes.push(`the action had not settled after ${MAX_WAIT / 1000} s; the numbers below are as they stood then`);
     result.online = on;
 
     // Acknowledged
+    // A pressed style is only sampled once, 50 ms into the press, so it proves
+    // "by 50 ms", not an exact time; the report says so.
     const ack = on.pressedStyleChanged ? Math.min(50, on.firstChangeMs ?? Infinity) : on.firstChangeMs;
-    const ackHow = on.pressedStyleChanged && (on.firstChangeMs == null || on.firstChangeMs > 50) ? 'pressed state while held' : 'first visible change';
+    const ackHow = on.pressedStyleChanged && (on.firstChangeMs == null || on.firstChangeMs > 50) ? 'pressed state seen at the 50 ms sample' : 'first visible change';
     result.checks = {
       acknowledged: { value: ack, unit: 'ms', max: ACK_MS, how: ack == null ? 'nothing changed' : ackHow, status: ack == null ? 'miss' : ack <= ACK_MS ? 'met' : 'miss' },
       announced: { value: on.live.length ? on.live[on.live.length - 1].text : null, status: on.live.length ? 'met' : 'miss' },
@@ -387,12 +413,13 @@ async function profileRun(name) {
       }
     }
 
-    // Failure, only when the action used the network
-    if (on.requests === 0) {
+    // Failure: the page's own switch when given, else the network, which only
+    // means something when the action used it.
+    if (!opt.failSwitch && on.requests === 0) {
       result.checks.failure = { value: null, status: 'not-measured' };
-      result.notes.push('the action made no network request, so the offline failure could not be triggered; check the failure path by hand');
+      result.notes.push('the action made no network request, so the offline failure could not be triggered; pass --fail-switch with the prototype\'s simulate-failure control, or check the failure path by hand');
     } else {
-      const off = await pass(name, { offline: true });
+      const off = await pass(name, { fail: opt.failSwitch ? 'switch' : 'offline' });
       result.offline = off;
       const successSaid = new Set(on.live.map((l) => l.text));
       const saidSomethingElse = off.live.some((l) => !successSaid.has(l.text));
@@ -439,7 +466,7 @@ for (const r of runs) {
   out(`  announced      ${show(c.announced, c.announced.value ? `"${c.announced.value.slice(0, 60)}"` : 'nothing reached a live region')}`);
   out(`  waiting        ${show(c.waiting, `${c.waiting.value} ms to settle`)}`);
   out(`  undo           ${show(c.undo, `${c.undo.value}`)}`);
-  out(`  failure        ${show(c.failure, c.failure.value ? `offline: "${String(c.failure.value).slice(0, 60)}"` : '')}`);
+  out(`  failure        ${show(c.failure, c.failure.value ? `${opt.failSwitch ? 'switched on' : 'offline'}: "${String(c.failure.value).slice(0, 60)}"` : '')}`);
   for (const n of r.notes) out(`    note: ${n}`);
 }
 out('');

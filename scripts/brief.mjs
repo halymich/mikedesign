@@ -94,12 +94,19 @@ const JOINT_FIELDS = [
  * says what was checked.
  */
 const OPERATE_FIELDS = [
-  ['convention-source', 'The tool the person already uses for this job, whose layout, keys and selection model carry over, and each departure with what it gains and who relearns what. Or "none: <what was checked>". Must be asked; cannot be assumed.'],
-  ['behaviour-model',   'As approved at the behaviour gate: each core action, its four states (idle, working, done, failed), its undo and its key. See core/behaviour.md.'],
+  ['convention-source', 'The tool the person already uses for this job, whose layout, keys and selection model carry over, and each departure with what it gains and who relearns what. Or "none: <what was checked>". Asked in THIS interview, never copied from an earlier brief, and ending with who said it and when, e.g. "(Michael, 9 Nov 2026)". Cannot be assumed.'],
+  ['behaviour-model',   'As approved at the behaviour gate: each core action, its four states (idle, working, done, failed), its undo and its key, ending with who approved it and when, e.g. "(Michael, 9 Nov 2026)". See core/behaviour.md.'],
 ];
 const UNASSUMABLE = new Set(['convention-source']);
+// These two record something the owner said, so the value has to say who said
+// it and when. A value without that is something the model wrote, which is the
+// guess these fields exist to stop, and it counts as unanswered.
+const ATTRIBUTED = new Set(['convention-source', 'behaviour-model']);
+const attributed = (v) => /\([^()]*,\s*\d{1,2}\s+[A-Za-z]{3,}\.?\s+\d{4}\s*\)/.test(String(v ?? ''));
+// A model that is still a proposal has not been approved, whatever it says.
+const unapproved = (v) => /\b(proposed|not yet approved|draft|pending approval|tbc)\b/i.test(String(v ?? ''));
 // A bare "none" says nothing about whether anyone looked.
-const bareNone = (v) => /^\s*(none|no|nothing)\s*\.?\s*$/i.test(String(v ?? ''));
+const bareNone = (v) => /^\s*(none|no|nothing)\s*\.?\s*(\([^()]*\))?\s*$/i.test(String(v ?? ''));
 
 const FIELD_SETS = {
   base: BASE_FIELDS,
@@ -199,7 +206,10 @@ if (cmd === 'check') {
   const gaps = [];
   for (const [key] of set) {
     const v = fields[key];
-    if (!isBlank(v) && !(UNASSUMABLE.has(key) && operate && bareNone(v))) answered.push(key);
+    const real = !isBlank(v)
+      && !(operate && UNASSUMABLE.has(key) && bareNone(v))
+      && !(operate && ATTRIBUTED.has(key) && (!attributed(v) || unapproved(v)));
+    if (real) answered.push(key);
     else gaps.push(key);
   }
 

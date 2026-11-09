@@ -269,7 +269,9 @@ unstyled prototype of how it behaves. Not the look. Styling waits until this is 
 **What it is.** The core actions working for real, with the real content or real sample data:
 
 - Every core action, clickable, with its four states (principle 1). Make failure reachable on
-  demand, with a visible switch that simulates the network failing, so the owner can see it.
+  demand, with a visible switch that simulates the failure this product really has (the network
+  for a web app, a full disk or a lost file for a desktop editor), so the owner can see it and
+  `behave.mjs --fail-switch` can press it.
 - Undo for everything it can restore, and the remaining checks only where principle 6 says so.
 - The keys, the selection model and the layout taken from `convention-source`, with each
   departure listed on the page beside the reason.
@@ -303,7 +305,10 @@ Two checks, both reported, and neither one replaces the other.
 node $S/behave.mjs <url> --action "<selector of the main action>" [--undo "<selector>"]
 ```
 
-It presses the main action and measures whether the press was acknowledged within 100 ms, whether
+For an action that needs a selection first, pass `--prepare "<selector>"` (repeatable) to click
+those before the press. For a product whose real failure is not the network, pass
+`--fail-switch "<selector>"`, the prototype's simulate-failure control, and the failure check
+presses it instead of going offline. It presses the main action and measures whether the press was acknowledged within 100 ms, whether
 the result was announced to assistive technology, whether undo put things back, and what happens
 when the same press is made with the network offline. See the header of `scripts/behave.mjs` for
 what each check proves and what it cannot.
@@ -317,6 +322,9 @@ hand, on phone and desktop widths, with a slow network once. Then answer, in the
 - Did anything ask "Are you sure?" where undo was possible?
 - Which conventions from `convention-source` were kept, which were broken, and did each break
   pay for itself?
+- Does the product's own work (suggestions, automation, generated output) arrive as marks the
+  person edits in place, or as a list they approve one by one? A list to approve is the most
+  common generated model; keep it only if the owner chose it.
 - What did the empty state teach, and what does a returning person see instead?
 
 A clean script run with an unanswered walkthrough is not a finished check.

@@ -150,7 +150,12 @@ check "an assumption does not satisfy it"           "$(bc)" "convention-source f
 sed -i.bak -E 's/^- convention-source: .*/- convention-source: none/' "$JB"
 check "a bare none does not satisfy it"             "$(bc)" "convention-source false"
 sed -i.bak -E 's/^- convention-source: .*/- convention-source: FL Studio playlist: P selects, C slices, right-click slices/' "$JB"
-check "a real answer does"                          "$(bc)" "none true"
+check "an answer nobody is credited with does not"  "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: FL Studio playlist: P selects, C slices (Michael, 9 Nov 2026)/' "$JB"
+check "an answer credited to the owner does"        "$(bc)" "none true"
+# The behaviour model records an approval, so a proposal is not one.
+sed -i.bak -E 's/^- behaviour-model: .*/- behaviour-model: PROPOSED, NOT YET APPROVED: delete with undo (Michael, 9 Nov 2026)/' "$JB"
+check "a proposed behaviour model is not an approved one" "$(node scripts/brief.mjs check "$JB" --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.answered.includes("behaviour-model"))})')" "false"
 check "persuade briefs do not carry it"             "$(grep -c '^- convention-source:' "$B/.mikedesign/brief-home.md")" "0"
 rm -rf "$B"
 
@@ -486,6 +491,12 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   check "a ticking element does not fake acknowledgement" "$(jget "$BC" "j.runs[0].checks.acknowledged.status")" "miss"
   bj 'behave-good.html?clock' '.del[data-name="Intro"]' >/dev/null
   check "a ticking element does not break a good action" "$?" "0"
+  # A desktop editor: no network, select first, and a disk that can fill up.
+  # Pressing a disabled action proves nothing, so it is refused.
+  BD=$(bj behave-local.html '#delete'); BDX=$?
+  check "a disabled action is refused, not passed" "$BDX,$(jget "$BD" "/disabled/.test(j.runs[0].error)")" "2,true"
+  BL=$(node scripts/behave.mjs "http://127.0.0.1:$PORT/behave-local.html" --prepare '.clip[data-id="a"]' --action '#delete' --fail-switch '#sim-disk' --profile desktop --json 2>>"$MERR"); BLX=$?
+  check "select-then-delete with a disk failure meets every check" "$BLX,$(jget "$BL" "j.runs[0].checks.failure.status")" "0,met"
   bj behave-good.html '#no-such-action' >/dev/null
   check "a missing action is no verdict"            "$?" "2"
   # Safety: it really performs the action, so it refuses anything that is not local.

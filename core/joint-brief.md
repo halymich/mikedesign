@@ -27,7 +27,9 @@ run a design interview and then a copy interview.
   `modes/product.md` (who is talking, what the reader already knows, the claim in one sentence,
   what must never be said). Ask each question once, in whichever round it belongs. If an answer
   already exists in `.mikedesign/DESIGN.md`, a prior brief or the owner's taste profile, use it
-  and do not ask.
+  and do not ask, with one exception: on a product screen, `convention-source` is asked in this
+  interview every time, even when an earlier brief names a model. An earlier answer is exactly
+  how an un-asked model survives (see [inquiry.md](inquiry.md)).
 - If the `grilling` skill is not installed, run the same rounds yourself with your tool's
   structured question feature, and say so in the report.
 - The record is `brief.mjs`, as before: `node $S/brief.mjs init <root> <surface> --type <type>

@@ -161,11 +161,16 @@ desktop, and checks what a script can see of `core/behaviour.md`:
 | Announced | The result reached a live region, so a screen reader says it |
 | Waiting | An action slower than a second showed it was working before it finished |
 | Undo | The undo route put the screen back exactly as it was |
-| Failure | The same press with the network offline told the person something went wrong |
+| Failure | The same press, with the failure switched on, told the person something went wrong |
 
 ```bash
 node scripts/behave.mjs http://localhost:3000/takes --action ".take .delete"
 ```
+
+`--prepare` clicks controls first, for an action that needs a selection. `--fail-switch` presses
+the prototype's own simulate-failure control, for a product whose real failure is a full disk
+rather than the network; without it the network goes offline. A disabled action is refused
+rather than pressed.
 
 It really performs the action, so it runs only against local or `.test` addresses, rechecks where
 the page actually is before pressing, and never follows a link. A hand walkthrough of every core

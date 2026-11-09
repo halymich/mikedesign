@@ -39,7 +39,16 @@ building it**, then add it to `components` so the next surface inherits it.
 Quietly widening the system is how a scoped system becomes an unscoped one, one surface at a
 time. The scope was a decision the user made about what they are paying to maintain.
 
-## 4. Structure before style
+## 4. Behaviour, on a product screen
+
+For an `operate` surface whose behaviour has not been approved yet, load
+[../core/behaviour.md](../core/behaviour.md), build the grey prototype from `convention-source`,
+and hold the behaviour gate before any styling, and before the structure and strings below:
+the wording of a screen cannot be approved before it is settled what the screen does. A new screen inside an approved model skips the
+gate but still builds to that model: the same states, the same undo, the same keys. Record the
+model in the brief's `behaviour-model` field.
+
+## 5. Structure before style
 
 Decide what the surface must do, in order, before opening a stylesheet. What does the visitor
 need to understand, in what sequence, to take the one action. Write that sequence down. Then let
@@ -59,14 +68,6 @@ a list costs a sentence, reordering a built page costs the page. Show the sequen
 section you are least sure earns its place, and ask. See [../core/showing.md](../core/showing.md)
 for how many gates this surface warrants; a page inside an already-approved direction needs only
 the one at the end.
-
-## 5. Behaviour, on a product screen
-
-For an `operate` surface whose behaviour has not been approved yet, load
-[../core/behaviour.md](../core/behaviour.md), build the grey prototype from `convention-source`,
-and hold the behaviour gate before any styling. A new screen inside an approved model skips the
-gate but still builds to that model: the same states, the same undo, the same keys. Record the
-model in the brief's `behaviour-model` field.
 
 ## 6. Build
 
