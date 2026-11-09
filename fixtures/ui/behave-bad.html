@@ -33,5 +33,14 @@
       .catch(() => {});
   });
 </script>
+<script>
+  // ?clock adds an element that changes on its own every 50 ms, like a playhead.
+  // The behaviour check must not mistake its ticking for the action's response.
+  if (/clock/.test(location.search)) {
+    const c = document.createElement('p');
+    document.querySelector('main').append(c);
+    setInterval(() => { c.textContent = (performance.now() / 1000).toFixed(2) + ' s'; }, 50);
+  }
+</script>
 </body>
 </html>

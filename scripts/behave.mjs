@@ -96,6 +96,7 @@ const ACK_MS = budgets.ackMs ?? 100;
 const SLOW_MS = 1000;   // past this, a wait needs a visible working cue
 const QUIET_MS = 800;   // no DOM change for this long means the action has settled
 const MAX_WAIT = 10000; // give up waiting for an action to settle
+const LEARN_MS = 1000;  // watch the untouched page this long to learn what changes on its own
 
 /* ---------- in-page recorder ---------- */
 /*
@@ -104,19 +105,28 @@ const MAX_WAIT = 10000; // give up waiting for an action to settle
  * idle until armed, so page load does not count as the action's response.
  */
 const RECORDER = `(() => {
-  const r = window.__mdBehave = { armed: false, downAt: null, muts: [], live: [], busy: [], last: new WeakMap() };
+  const r = window.__mdBehave = { armed: false, learning: false, downAt: null, muts: [], live: [], busy: [], last: new WeakMap(), noisy: new Set() };
+  // Elements that change on their own (a clock, a playhead, a level meter) are
+  // learned before the press and ignored after it, so their ticking is never
+  // mistaken for the action's response.
+  const isNoisy = (el) => { for (let n = el; n; n = n.parentElement) if (r.noisy.has(n)) return true; return false; };
   const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], output';
   const BUSY = '[aria-busy="true"], [role="progressbar"], progress';
   const textOf = (n) => (n && (n.innerText || n.textContent) || '').replace(/\\s+/g, ' ').trim();
   addEventListener('pointerdown', (e) => { if (r.armed && r.downAt === null) r.downAt = e.timeStamp; }, true);
   addEventListener('keydown', (e) => { if (r.armed && r.downAt === null) r.downAt = e.timeStamp; }, true);
   const obs = new MutationObserver((list) => {
+    if (r.learning) {
+      for (const m of list) { const el = m.target.nodeType === 1 ? m.target : m.target.parentElement; if (el) r.noisy.add(el); }
+      return;
+    }
     if (!r.armed) return;
     const t = performance.now();
-    r.muts.push(t);
+    let counted = false;
     for (const m of list) {
       const el = m.target.nodeType === 1 ? m.target : m.target.parentElement;
-      if (!el) continue;
+      if (!el || isNoisy(el)) continue;
+      if (!counted) { r.muts.push(t); counted = true; }
       const region = el.closest(LIVE) || (m.addedNodes && [...m.addedNodes].find((n) => n.nodeType === 1 && n.matches(LIVE)));
       if (region) {
         const text = textOf(region);
@@ -135,10 +145,21 @@ const RECORDER = `(() => {
 const FINGERPRINT = (scope) => `(() => {
   const root = ${scope ? `document.querySelector(${JSON.stringify(scope)})` : `document.querySelector('main') || document.body`};
   if (!root) return null;
-  let text = root.innerText || '';
+  // Visible text nodes, one per line, skipping anything inside a live region or
+  // an element that changes on its own.
   const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], output, [data-behave-ignore]';
-  for (const n of root.querySelectorAll(LIVE)) { const t = n.innerText || ''; if (t) text = text.replace(t, ''); }
-  return text.split('\\n').map((l) => l.replace(/\\s+/g, ' ').trim()).filter(Boolean).join('\\n');
+  const noisy = (window.__mdBehave && window.__mdBehave.noisy) || new Set();
+  const skip = (el) => { for (let n = el; n; n = n.parentElement) if (noisy.has(n)) return true; return !!el.closest(LIVE); };
+  const lines = [];
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    const el = n.parentElement;
+    const t = n.nodeValue.replace(/\\s+/g, ' ').trim();
+    if (!t || !el || skip(el)) continue;
+    if (el.checkVisibility && !el.checkVisibility({ visibilityProperty: true })) continue;
+    lines.push(t);
+  }
+  return lines.join('\\n');
 })()`;
 
 const STYLE_OF = (sel) => `(() => {
@@ -224,6 +245,10 @@ async function pass(profileName, { offline }) {
     if (!box) throw new Error(`action not found: ${opt.action}`);
     await sleep(200);
 
+    await ev('window.__mdBehave.learning = true');
+    await sleep(LEARN_MS);
+    await ev('window.__mdBehave.learning = false');
+    out.noisyNodes = await ev('window.__mdBehave.noisy.size');
     out.before = await ev(FINGERPRINT(opt.scope));
     const restStyle = await ev(STYLE_OF(opt.action));
     await stillLocal();
@@ -249,15 +274,21 @@ async function pass(profileName, { offline }) {
     }
     if (out.pressedStyleChanged === undefined) out.pressedStyleChanged = heldStyle !== null && restStyle !== null && heldStyle !== restStyle;
 
-    // Wait for the action to settle: no DOM change for QUIET_MS, up to MAX_WAIT.
-    const waitStart = Date.now();
-    let rec;
-    for (;;) {
-      await sleep(200);
-      rec = await ev('(() => { const r = window.__mdBehave; return { downAt: r.downAt, muts: r.muts, live: r.live, busy: r.busy, now: performance.now() }; })()');
-      const last = rec.muts.length ? rec.muts[rec.muts.length - 1] : rec.downAt ?? rec.now;
-      if ((rec.now - last >= QUIET_MS && inflight.size === 0) || Date.now() - waitStart > MAX_WAIT) break;
-    }
+    // Settled: no counted DOM change for QUIET_MS and no request still open,
+    // up to MAX_WAIT. Used after the press and again after undo.
+    const settle = async () => {
+      const start = Date.now();
+      const from = await ev('performance.now()');
+      let rec;
+      for (;;) {
+        await sleep(200);
+        rec = await ev('(() => { const r = window.__mdBehave; return { downAt: r.downAt, muts: r.muts, live: r.live, busy: r.busy, now: performance.now() }; })()');
+        const last = rec.muts.length ? Math.max(rec.muts[rec.muts.length - 1], from) : from;
+        if ((rec.now - last >= QUIET_MS && inflight.size === 0) || Date.now() - start > MAX_WAIT) break;
+      }
+      return { rec, timedOut: Date.now() - start > MAX_WAIT };
+    };
+    const { rec, timedOut } = await settle();
     const down = rec.downAt;
     if (down === null) throw new Error('the press never reached the page (is the action covered by another element?)');
     const after = rec.muts.filter((t) => t >= down);
@@ -266,10 +297,12 @@ async function pass(profileName, { offline }) {
     out.live = rec.live.filter((l) => l.t >= down).map((l) => ({ ms: Math.round(l.t - down), text: l.text, alert: l.alert }));
     out.busyMs = rec.busy.filter((t) => t >= down).map((t) => Math.round(t - down));
     out.requests = requestsAfterPress;
-    out.timedOut = Date.now() - waitStart > MAX_WAIT;
+    out.timedOut = timedOut;
     out.after = await ev(FINGERPRINT(opt.scope));
 
     if (!offline) {
+      // The action may have navigated; never act on a page that is not local.
+      await stillLocal();
       // Undo: the given route, else a visible Undo control, else the platform key.
       let route = null;
       const undoSel = opt.undo || await ev(FIND_UNDO);
@@ -298,14 +331,8 @@ async function pass(profileName, { offline }) {
         await send('Input.dispatchKeyEvent', { type: 'keyUp', ...keyArgs });
       }
       out.undoRoute = route;
-      const us = Date.now();
-      let prevLen = -1;
-      for (;;) {
-        await sleep(200);
-        const n = await ev('window.__mdBehave.muts.length');
-        if ((n === prevLen) || Date.now() - us > 3000) break;
-        prevLen = n;
-      }
+      // Settle the same way as the action: quiet screen and no open request.
+      await settle();
       out.undone = await ev(FINGERPRINT(opt.scope));
     }
   } finally {

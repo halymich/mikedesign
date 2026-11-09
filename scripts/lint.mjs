@@ -499,12 +499,27 @@ function runRendered(data) {
       // number, sharing a left or right edge at different heights. A row of
       // stats side by side does not need tabular figures; a column does.
       const NUM = /^[\s$€£¥+\-−]*\d[\d\s.,:%]*[a-zA-Z%]{0,3}$/;
+      // Single digits cannot misalign, so a figure needs two digits to count.
+      // Cells from several columns of one table share a signature, so each
+      // group is split into columns by shared left or right edge first.
+      const columns = [];
       for (const group of sigGroups.values()) {
-        const nums = group.filter((el) => el.text && NUM.test(el.text.trim()));
-        if (nums.length < (t.min || 3)) continue;
-        const ys = new Set(nums.map((el) => el.y));
-        const sameEdge = (key) => { const v = nums.map(key); return Math.max(...v) - Math.min(...v) <= 2; };
-        if (ys.size < nums.length || !(sameEdge((el) => el.x) || sameEdge((el) => el.x + el.w))) continue;
+        const nums = group.filter((el) => el.text && NUM.test(el.text.trim()) && (el.text.match(/\d/g) || []).length >= 2);
+        const byEdge = new Map();
+        for (const el of nums) {
+          for (const k of [`L${Math.round(el.x / 3)}`, `R${Math.round((el.x + el.w) / 3)}`]) {
+            if (!byEdge.has(k)) byEdge.set(k, []);
+            byEdge.get(k).push(el);
+          }
+        }
+        for (const col of byEdge.values()) {
+          if (col.length >= (t.min || 3) && new Set(col.map((el) => el.y)).size === col.length) columns.push(col);
+        }
+      }
+      const seen = new Set();
+      for (const nums of columns) {
+        if (nums.some((el) => seen.has(el))) continue;
+        nums.forEach((el) => seen.add(el));
         const proportional = nums.filter((el) => !/tabular-nums/.test(el.styles.fontVariantNumeric || '') && !/mono|courier|consolas|menlo|monaco/i.test(el.styles.fontFamily || ''));
         if (proportional.length) report(rule, locator(proportional[0]), `${nums.length} figures in a column, e.g. ${nums.slice(0, 3).map((el) => el.text.trim()).join(' / ')}`);
       }

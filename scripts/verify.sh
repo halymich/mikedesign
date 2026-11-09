@@ -419,12 +419,16 @@ const st=(o)=>Object.assign({fontFamily:"Fraunces",fontSize:"16px",fontVariantNu
 const el=(i,o)=>Object.assign({i,tag:"DIV",cls:"",id:"",text:"",role:"body",parentSig:"p",sig:"s",x:0,y:0,w:100,h:20,styles:st({})},o);
 const row=[0,1,2].map(i=>el(i,{text:["1,111","8,808","4,404"][i],x:i*120,y:0,sig:"row"}));
 const col=[0,1,2].map(i=>el(10+i,{text:["1,111","8,808","4,404"][i],x:0,y:40+i*24,sig:"col",parentSig:"q"}));
+// a table: two numeric columns whose cells share one signature, and a 1-2-3 stepper
+const table=[0,1,2].flatMap(r=>[0,1].map(c=>el(30+r*2+c,{text:["12.50","1,204"][c],x:300+c*140,y:r*24,sig:"td",parentSig:"tr"})));
+const steps=[0,1,2].map(i=>el(40+i,{text:String(i+1),x:600,y:i*30,sig:"step",parentSig:"ol"}));
 const code=el(20,{tag:"CODE",text:"curl -F \"file=@take.wav\" --max 25MB",styles:st({fontFamily:"ui-monospace, Menlo, monospace"})});
-const page={ok:true,collector:"mikedesign/1",url:"fixture://polish",viewport:{w:1280,h:800},pageBackground:"rgb(250, 248, 244)",pageColor:"rgb(20, 20, 20)",coverage:{scanned:7,kept:7,truncated:false},elements:[...row,...col,code]};
+const page={ok:true,collector:"mikedesign/1",url:"fixture://polish",viewport:{w:1280,h:800},pageBackground:"rgb(250, 248, 244)",pageColor:"rgb(20, 20, 20)",coverage:{scanned:7,kept:7,truncated:false},elements:[...row,...col,...table,...steps,code]};
 require("fs").writeFileSync(process.argv[1],JSON.stringify(page));' "$U/polish.json"
 POL=$(node scripts/lint.mjs --rendered "$U/polish.json" --surface operate --json 2>/dev/null \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>["straight-quotes","unit-without-space","numbers-not-tabular"].includes(f.id)).map(f=>f.id+":"+f.where).join(",")||"none")})')
-check "polish rules spare code and rows, catch the column" "$(printf '%s' "$POL" | grep -o 'numbers-not-tabular' | wc -l | tr -d ' '),$(printf '%s' "$POL" | grep -c 'quotes\|unit')" "1,0"
+# 3 = the stacked column plus each of the table's two columns; the row and the stepper do not count
+check "polish rules spare code, rows and steppers, catch columns and tables" "$(printf '%s' "$POL" | grep -o 'numbers-not-tabular' | wc -l | tr -d ' '),$(printf '%s' "$POL" | grep -c 'quotes\|unit')" "3,0"
 rm -rf "$U"
 
 echo
@@ -476,6 +480,12 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   BB=$(bj behave-bad.html '.del'); BBX=$?
   check "every behaviour failure is caught" "$(jget "$BB" "['acknowledged','announced','waiting','undo','failure'].map(k=>j.runs[0].checks[k].status).join(',')")" "miss,miss,miss,miss,miss"
   check "a behaviour miss exits 1"                  "$BBX" "1"
+  # An element that ticks on its own (a playhead, a clock) is learned before the
+  # press and ignored, so it neither fakes an acknowledgement nor stops settling.
+  BC=$(bj 'behave-bad.html?clock' '.del')
+  check "a ticking element does not fake acknowledgement" "$(jget "$BC" "j.runs[0].checks.acknowledged.status")" "miss"
+  bj 'behave-good.html?clock' '.del[data-name="Intro"]' >/dev/null
+  check "a ticking element does not break a good action" "$?" "0"
   bj behave-good.html '#no-such-action' >/dev/null
   check "a missing action is no verdict"            "$?" "2"
   # Safety: it really performs the action, so it refuses anything that is not local.
