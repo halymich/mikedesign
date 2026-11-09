@@ -411,6 +411,20 @@ if [ -f "${MIKECOPY_HOME:-../mikecopy}/data/rules.json" ]; then
     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="em-dash-in-copy").map(f=>f.where.split(":").pop()).join(","))})')
   check "code comments are not copy, shipped strings are" "$CM" "4"
 fi
+# Polish rules must not fire where the form is correct: code set in a monospace
+# face keeps its straight quotes and 25MB, and figures side by side in a row do
+# not need tabular numerals. The same figures stacked in a column do.
+node -e '
+const st=(o)=>Object.assign({fontFamily:"Fraunces",fontSize:"16px",fontVariantNumeric:"normal"},o);
+const el=(i,o)=>Object.assign({i,tag:"DIV",cls:"",id:"",text:"",role:"body",parentSig:"p",sig:"s",x:0,y:0,w:100,h:20,styles:st({})},o);
+const row=[0,1,2].map(i=>el(i,{text:["1,111","8,808","4,404"][i],x:i*120,y:0,sig:"row"}));
+const col=[0,1,2].map(i=>el(10+i,{text:["1,111","8,808","4,404"][i],x:0,y:40+i*24,sig:"col",parentSig:"q"}));
+const code=el(20,{tag:"CODE",text:"curl -F \"file=@take.wav\" --max 25MB",styles:st({fontFamily:"ui-monospace, Menlo, monospace"})});
+const page={ok:true,collector:"mikedesign/1",url:"fixture://polish",viewport:{w:1280,h:800},pageBackground:"rgb(250, 248, 244)",pageColor:"rgb(20, 20, 20)",coverage:{scanned:7,kept:7,truncated:false},elements:[...row,...col,code]};
+require("fs").writeFileSync(process.argv[1],JSON.stringify(page));' "$U/polish.json"
+POL=$(node scripts/lint.mjs --rendered "$U/polish.json" --surface operate --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>["straight-quotes","unit-without-space","numbers-not-tabular"].includes(f.id)).map(f=>f.id+":"+f.where).join(",")||"none")})')
+check "polish rules spare code and rows, catch the column" "$(printf '%s' "$POL" | grep -o 'numbers-not-tabular' | wc -l | tr -d ' '),$(printf '%s' "$POL" | grep -c 'quotes\|unit')" "1,0"
 rm -rf "$U"
 
 echo
@@ -467,6 +481,10 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   # Safety: it really performs the action, so it refuses anything that is not local.
   node scripts/behave.mjs "https://example.com/" --action a --json >/dev/null 2>&1
   check "a remote address is refused"               "$?" "2"
+  node scripts/behave.mjs "file://fileserver/share/page.html" --action a --json >/dev/null 2>&1
+  check "a file address on another machine is refused" "$?" "2"
+  BR=$(bj behave-redirect.html '.del'); BRX=$?
+  check "a page that redirects away is not pressed" "$BRX,$(jget "$BR" "/not a local address/.test(j.runs[0].error)")" "2,true"
   BLEFT=$(ls -d "${TMPDIR:-/tmp}"/mikedesign-behave-* 2>/dev/null | wc -l | tr -d ' ')
   check "no temporary behaviour profile left behind" "$BLEFT" "0"
   kill $SRV 2>/dev/null

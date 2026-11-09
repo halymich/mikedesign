@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Moves away</title></head>
+<body>
+<main><button class="del">Delete</button></main>
+<script>
+  // A local page that sends the browser somewhere else after loading. The
+  // behaviour check must notice and press nothing.
+  addEventListener('load', () => setTimeout(() => location.replace('http://example.invalid/'), 50));
+</script>
+</body>
+</html>

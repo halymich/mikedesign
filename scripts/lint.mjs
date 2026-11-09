@@ -482,9 +482,32 @@ function runRendered(data) {
     }
 
     else if (t.type === 'text-pattern') {
-      // rendered-scope text rules (e.g. section numbering) need the DOM
+      // rendered-scope text rules (e.g. section numbering) need the DOM. `none`
+      // lists style conditions that exempt an element, such as code set in a
+      // monospace face, where straight quotes and 25MB are correct.
       const re = new RegExp(t.pattern, t.flags || '');
-      for (const el of els) if (el.text && re.test(el.text)) report(rule, locator(el), el.text);
+      for (const el of els) {
+        if (!el.text) continue;
+        if ((t.none || []).some((cond) => new RegExp(cond.match, 'i').test(el.styles[cond.prop] || ''))) continue;
+        const m = el.text.match(re);
+        if (m) report(rule, locator(el), m[0].trim(), el.text);
+      }
+    }
+
+    else if (t.type === 'numeric-column') {
+      // Figures stacked in a column: siblings of one shape whose text is a
+      // number, sharing a left or right edge at different heights. A row of
+      // stats side by side does not need tabular figures; a column does.
+      const NUM = /^[\s$€£¥+\-−]*\d[\d\s.,:%]*[a-zA-Z%]{0,3}$/;
+      for (const group of sigGroups.values()) {
+        const nums = group.filter((el) => el.text && NUM.test(el.text.trim()));
+        if (nums.length < (t.min || 3)) continue;
+        const ys = new Set(nums.map((el) => el.y));
+        const sameEdge = (key) => { const v = nums.map(key); return Math.max(...v) - Math.min(...v) <= 2; };
+        if (ys.size < nums.length || !(sameEdge((el) => el.x) || sameEdge((el) => el.x + el.w))) continue;
+        const proportional = nums.filter((el) => !/tabular-nums/.test(el.styles.fontVariantNumeric || '') && !/mono|courier|consolas|menlo|monaco/i.test(el.styles.fontFamily || ''));
+        if (proportional.length) report(rule, locator(proportional[0]), `${nums.length} figures in a column, e.g. ${nums.slice(0, 3).map((el) => el.text.trim()).join(' / ')}`);
+      }
     }
   }
 

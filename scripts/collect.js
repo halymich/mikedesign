@@ -33,6 +33,8 @@
     ['borderLeftWidth', 'border-left-width'],
     ['fill', 'fill'],
     ['transitionProperty', 'transition-property'],
+    ['transitionDuration', 'transition-duration'],
+    ['fontVariantNumeric', 'font-variant-numeric'],
     ['position', 'position'],
   ];
 
@@ -48,6 +50,7 @@
     borderLeftWidth: ['0px'],
     fill: ['none', 'rgb(0, 0, 0)'],
     transitionProperty: ['all', 'none'],
+    transitionDuration: ['0s'],
   };
 
   const SKIP_TAGS = new Set([

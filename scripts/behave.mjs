@@ -19,8 +19,8 @@
  *   waiting       when the action took more than a second to settle, a working
  *                 cue appeared before it finished (aria-busy, a progressbar, or
  *                 an announcement). A quick action does not need one.
- *   undo          the undo route (--undo, else a visible control named "Undo",
- *                 else Cmd+Z / Ctrl+Z) put the screen back the way it was.
+ *   undo          the undo route (--undo, else a visible button named exactly
+ *                 "Undo", else Cmd+Z / Ctrl+Z) put the screen back the way it was.
  *                 Compared as the visible text of --scope (default: main, else
  *                 body) with live regions left out.
  *   failure       the same press, made on a fresh load with the network offline,
@@ -80,7 +80,8 @@ if (!['mobile', 'desktop', 'both'].includes(opt.profile)) { console.error(`unkno
 function localAddress(raw) {
   let u;
   try { u = new URL(raw); } catch { return false; }
-  if (u.protocol === 'file:') return true;
+  // A file URL with a host (file://server/share) reaches another machine.
+  if (u.protocol === 'file:') return u.hostname === '' || u.hostname.toLowerCase() === 'localhost';
   if (!['http:', 'https:'].includes(u.protocol)) return false;
   const h = u.hostname.toLowerCase();
   return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1' || h.endsWith('.localhost') || h.endsWith('.test');
@@ -147,13 +148,16 @@ const STYLE_OF = (sel) => `(() => {
   return ['transform', 'background-color', 'color', 'box-shadow', 'opacity', 'border-color', 'outline-color', 'filter'].map((p) => cs.getPropertyValue(p)).join('|');
 })()`;
 
+// Only a button whose name is exactly "Undo". Never a link: a page could label
+// a link to anywhere "Undo", and the check would then follow it.
 const FIND_UNDO = `(() => {
-  const named = (el) => ((el.getAttribute('aria-label') || '') + ' ' + (el.textContent || '')).trim();
-  for (const el of document.querySelectorAll('button, [role="button"], a[href]')) {
+  const named = (el) => (el.getAttribute('aria-label') || el.textContent || '').trim();
+  for (const el of document.querySelectorAll('button, [role="button"]')) {
+    if (el.closest('a[href]')) continue;
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
     if (r.width < 1 || r.height < 1 || cs.visibility === 'hidden' || cs.display === 'none') continue;
-    if (!/^\\s*undo\\b/i.test(named(el))) continue;
+    if (!/^undo$/i.test(named(el))) continue;
     el.setAttribute('data-md-undo', '1');
     return '[data-md-undo="1"]';
   }
@@ -207,6 +211,14 @@ async function pass(profileName, { offline }) {
     while (!loaded && Date.now() - t0 < 30000) await sleep(100);
     if (!loaded) throw new Error('page did not finish loading within 30s');
     await sleep(500);
+    // The address was checked before loading; a redirect could have moved the
+    // page somewhere else. Check where it actually is before pressing anything.
+    const stillLocal = async () => {
+      if (opt.allowRemote) return;
+      const here = await ev('location.href');
+      if (!localAddress(here)) throw new Error(`the page moved to ${here}, which is not a local address; nothing was pressed`);
+    };
+    await stillLocal();
 
     const box = await ev(`(() => { const el = document.querySelector(${JSON.stringify(opt.action)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
     if (!box) throw new Error(`action not found: ${opt.action}`);
@@ -214,6 +226,7 @@ async function pass(profileName, { offline }) {
 
     out.before = await ev(FINGERPRINT(opt.scope));
     const restStyle = await ev(STYLE_OF(opt.action));
+    await stillLocal();
     if (offline) await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
 
     await ev('(() => { const r = window.__mdBehave; r.armed = true; r.downAt = null; r.muts = []; r.live = []; r.busy = []; })()');
