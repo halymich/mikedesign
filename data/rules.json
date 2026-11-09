@@ -381,6 +381,77 @@
           "new"
         ]
       }
+    },
+    {
+      "id": "straight-quotes",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Straight quotes or apostrophes in copy",
+      "why": "Typewriter quotes are what a keyboard produces when nobody set the type. Curly quotes and apostrophes are the finished form; straight ones belong in code. Source: Interface Lineage, Frontend craft checklist (https://interfacelineage.com/frontend-craft-checklist), after Butterick.",
+      "fix": "Use ‘ ’ “ ” in copy (and ’ for apostrophes). Leave code, set in a monospace face, alone.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "[A-Za-z]+'[A-Za-z]+|(^|\\s)\"[^\"\\n]{1,200}\"",
+        "flags": "",
+        "none": [
+          {
+            "prop": "fontFamily",
+            "match": "mono|courier|consolas|menlo|monaco"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unit-without-space",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Number and unit run together (25MB, 300ms)",
+      "why": "SI style puts a space between a value and its unit, and a non-breaking one keeps the pair on one line. Run together, the unit reads as part of the number. Source: Interface Lineage, Frontend craft checklist (https://interfacelineage.com/frontend-craft-checklist), after NIST SP 811.",
+      "fix": "Write 25 MB and 300 ms, joined by a non-breaking space so the pair never wraps.",
+      "test": {
+        "type": "text-pattern",
+        "pattern": "\\b\\d+(?:[.,]\\d+)?(?:KB|MB|GB|TB|kB|ms|kHz|Hz|dB|fps|kbps|Mbps)\\b",
+        "flags": "",
+        "none": [
+          {
+            "prop": "fontFamily",
+            "match": "mono|courier|consolas|menlo|monaco"
+          }
+        ]
+      }
+    },
+    {
+      "id": "transition-all",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Transition on every property (transition: all)",
+      "why": "Transitioning all animates properties nobody chose, including ones that force layout, and makes later style changes animate by accident. Source: Interface Lineage, Frontend craft checklist (https://interfacelineage.com/frontend-craft-checklist), after web.dev.",
+      "fix": "Name the properties: transition: opacity .2s, transform .2s.",
+      "test": {
+        "type": "computed",
+        "all": [
+          {
+            "prop": "transitionProperty",
+            "match": "(^|,\\s*)all(\\s*,|$)"
+          },
+          {
+            "prop": "transitionDuration",
+            "match": "(^|[^.\\d])0*[1-9]|\\.\\d*[1-9]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "numbers-not-tabular",
+      "severity": "advisory",
+      "scope": "rendered",
+      "title": "Column of figures without tabular numerals",
+      "why": "In a proportional face a 1 is narrower than an 8, so figures stacked in a column do not line up and totals are hard to compare. Source: Interface Lineage, Frontend craft checklist (https://interfacelineage.com/frontend-craft-checklist).",
+      "fix": "Set font-variant-numeric: tabular-nums on columns of prices, counts, times and versions.",
+      "test": {
+        "type": "numeric-column",
+        "min": 3
+      }
     }
   ],
   "ui": {
@@ -389,7 +460,8 @@
       "inpMs": 200,
       "cls": 0.05,
       "jsKb": 150,
-      "fontFiles": 2
+      "fontFiles": 2,
+      "ackMs": 100
     },
     "axe": {
       "version": "4.13.0",

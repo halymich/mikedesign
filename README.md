@@ -89,6 +89,14 @@ brochure adjectives, fabricated metrics, raw model output) live in mikecopy and 
 rendered page when it is installed. Hard rules gate. Advisory rules report and never block,
 because a strict linter that cries wolf gets switched off.
 
+**Behaviour before looks.** On a product screen, how it works is designed and approved before
+how it looks. The interview must ask which tool the person already uses for the job (the brief
+checker refuses to let that be assumed), and the first thing the owner sees is an unstyled
+prototype of the core actions: their states, their undo, their keys. The rules for it are fifteen
+behaviour principles in `core/behaviour.md`, each paired with the principle it fights and where
+each one wins, and each linked to its page on [Interface Lineage](https://interfacelineage.com/),
+the library of interface mechanisms they are drawn from.
+
 **Show the work.** Every command that produces something a person could look at ends by handing
 them a link they can open, then stops and asks. Verification is evidence for the model; showing
 is evidence for the user, and a clean lint has never meant the design was any good.
@@ -141,6 +149,33 @@ linter checks, variable fonts doing hierarchy through weight and optical size, t
 pressed states, and glass as a tool for exactly one job, a layer over moving content. On iOS that
 means Apple's own materials. None of these is a default look; each product records where it uses
 them.
+
+## Behaviour is pressed, not described
+
+`scripts/behave.mjs` presses the main action of a product screen in a real Chrome, on phone and
+desktop, and checks what a script can see of `core/behaviour.md`:
+
+| Check | Passes when |
+|---|---|
+| Acknowledged | Something visible changed within 100 ms of the press |
+| Announced | The result reached a live region, so a screen reader says it |
+| Waiting | An action slower than a second showed it was working before it finished |
+| Undo | The undo route put the screen back exactly as it was |
+| Failure | The same press, with the failure switched on, told the person something went wrong |
+
+```bash
+node scripts/behave.mjs http://localhost:3000/takes --action ".take .delete"
+```
+
+`--prepare` clicks controls first, for an action that needs a selection. `--fail-switch` presses
+the prototype's own simulate-failure control, for a product whose real failure is a full disk
+rather than the network; without it the network goes offline. A disabled action is refused
+rather than pressed.
+
+It really performs the action, so it runs only against local or `.test` addresses, rechecks where
+the page actually is before pressing, and never follows a link. A hand walkthrough of every core
+action through all four states sits beside it in the report, because a script cannot tell whether
+the states are clear or the model is the right one.
 
 ## Checking the rendered page, not the source
 

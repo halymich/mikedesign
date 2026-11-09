@@ -51,6 +51,31 @@ it. Being a thought partner means having a view.
 question whose answer is sitting in the stylesheet wastes the user's attention and spends
 credibility you will need for the questions that matter.
 
+**On a product screen, ask which tool they already use for this job.** Every time, with no
+default answer. Then ask which parts of its model their hands already know: the layout, what a
+click and a drag do, how selection works, the keys. This is `convention-source` in the brief,
+and it is the one field `brief.mjs` will not let you assume, because an interaction model nobody
+asked about is the most expensive thing this skill can get wrong: it looks fine in a screenshot
+and is only found when the owner tries to work in it. "None" is a real answer when it says what
+was checked. See [behaviour.md](behaviour.md).
+
+Four rules for this question, because it is the one most easily skipped:
+
+- **Ask it fresh.** It overrides "never ask what you can find out" and "reuse earlier answers".
+  An earlier brief or plan may name a model; offer it as one of the options, never as the answer.
+- **No recommended option.** Elsewhere the recommendation goes first. Here the owner's hands are
+  the evidence, so the options are the tools you found, plus "something else" and "nothing".
+- **Ask which parts carry over in the same round.** Layout, selection, keys, what a click and a
+  drag mean, and how the product's own suggestions or automation reach the person (marks on the
+  work, or a list to approve). The last one is where generated tools most often go wrong.
+- **Then recheck the brief.** Once the model is known, reread every field written before it
+  (`success-action`, `must-include`, `string-inventory`) and ask about any that assume a
+  different model. A brief that says "approve each suggestion" next to a model that says "edit
+  the work" contradicts itself, and the old half wins by default.
+
+Record the answer with who said it and when, for example "(Michael, 9 Nov 2026)". `brief.mjs`
+does not accept it otherwise.
+
 **Ask about the enemy.** "What should this not look like" is worth three positive references.
 People describe taste far more precisely in the negative.
 

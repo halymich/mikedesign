@@ -65,6 +65,10 @@ mechanical changes where the user named the value; this extends it.
 
 - **New or changing direction: two gates.** One before building, on the direction itself, when it
   is still cheap to change. One after, on the result.
+- **New direction on a product screen: three.** The behaviour gate comes first, on an unstyled
+  prototype of how it works (see [behaviour.md](behaviour.md)), then the two above. A look
+  approved on top of the wrong interaction model is the most expensive thing to undo, so the
+  model is settled while it is still grey.
 - **Inside an already-approved direction: one gate**, after.
 - **Mechanical change the user specified: no gate.** Make it and move on.
 

@@ -40,7 +40,9 @@ JavaScript having run. Honour `prefers-reduced-motion`. Blur, clip-path, mask an
 are part of the palette when they stay smooth.
 
 **States.** Hover, focus, active, disabled, loading, error, empty. The empty state is the one
-that ships broken, and it is the first thing a new user sees.
+that ships broken, and it is the first thing a new user sees. On a product screen, the states of
+each action (idle, working, done, failed) and what they mean were settled at the behaviour gate in
+[behaviour.md](behaviour.md); this is where they get their look, each one distinct.
 
 **Browser surfaces.** The parts nobody draws still carry the design: text selection, the caret,
 scrollbars, focus rings, underline offset, tabular numerals in data. They ship with defaults that

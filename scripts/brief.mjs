@@ -16,7 +16,12 @@
  * So the script produces the assumption list. The model only supplies the why,
  * and cannot reach a clean exit without doing so.
  *
- * Exit codes: 0 every field answered or assumed with a reason · 1 stubs pending · 2 usage error.
+ * On a product screen (surface-type: operate) two more fields apply, and one of
+ * them, convention-source, cannot be assumed at all: it stays outstanding until
+ * the owner answers it. See OPERATE_FIELDS below.
+ *
+ * Exit codes: 0 every field answered or assumed with a reason · 1 stubs pending
+ *             or a must-ask field unanswered · 2 usage error.
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -77,6 +82,32 @@ const JOINT_FIELDS = [
   ['bar',              'The 3 to 5 references and the principle taken from each, or "unchecked" with the reason.'],
 ];
 
+/*
+ * Extra fields for any brief whose surface-type is `operate`, whatever field set
+ * it was created with. A product screen is judged in the hand, so its brief has
+ * to say whose interaction model it inherits and what behaviour was approved.
+ *
+ * convention-source is the one field in this tool that cannot be assumed. The
+ * failure it exists for is an interaction model invented because nobody asked
+ * which tool the person already knows, and an assumption is exactly that
+ * failure written down. It must be asked; "none" is a fine answer only when it
+ * says what was checked.
+ */
+const OPERATE_FIELDS = [
+  ['convention-source', 'The tool the person already uses for this job, whose layout, keys and selection model carry over, and each departure with what it gains and who relearns what. Or "none: <what was checked>". Asked in THIS interview, never copied from an earlier brief, and ending with who said it and when, e.g. "(Michael, 9 Nov 2026)". Cannot be assumed.'],
+  ['behaviour-model',   'As approved at the behaviour gate: each core action, its four states (idle, working, done, failed), its undo and its key, ending with who approved it and when, e.g. "(Michael, 9 Nov 2026)". See core/behaviour.md.'],
+];
+const UNASSUMABLE = new Set(['convention-source']);
+// These two record something the owner said, so the value has to say who said
+// it and when. A value without that is something the model wrote, which is the
+// guess these fields exist to stop, and it counts as unanswered.
+const ATTRIBUTED = new Set(['convention-source', 'behaviour-model']);
+const attributed = (v) => /\([^()]*,\s*\d{1,2}\s+[A-Za-z]{3,}\.?\s+\d{4}\s*\)/.test(String(v ?? ''));
+// A model that is still a proposal has not been approved, whatever it says.
+const unapproved = (v) => /\b(proposed|not yet approved|draft|pending approval|tbc)\b/i.test(String(v ?? ''));
+// A bare "none" says nothing about whether anyone looked.
+const bareNone = (v) => /^\s*(none|no|nothing)\s*\.?\s*(\([^()]*\))?\s*$/i.test(String(v ?? ''));
+
 const FIELD_SETS = {
   base: BASE_FIELDS,
   joint: [...BASE_FIELDS, ...JOINT_FIELDS],
@@ -121,8 +152,8 @@ if (cmd === 'init') {
   // A `system` brief defaults to the system field set, because scoping is the
   // whole point of that command.
   const setName = fi > -1 ? argv[fi + 1] : (surface === 'system' ? 'system' : 'base');
-  const set = FIELD_SETS[setName];
-  if (!set) fail(`unknown field set "${setName}". Expected base, system, joint or copy.`);
+  if (!FIELD_SETS[setName]) fail(`unknown field set "${setName}". Expected base, system, joint or copy.`);
+  const set = type === 'operate' ? [...FIELD_SETS[setName], ...OPERATE_FIELDS] : FIELD_SETS[setName];
 
   const dir = join(root, '.mikedesign');
   const path = join(dir, `brief-${surface}.md`);
@@ -164,25 +195,38 @@ if (cmd === 'check') {
   // silently validate a system brief against the shorter base list.
   const marker = md.match(MARKER);
   const setName = marker && FIELD_SETS[marker[1]] ? marker[1] : 'base';
-  const set = FIELD_SETS[setName];
+  // Product screens carry the operate fields whatever set the brief was made
+  // with, so a brief written before they existed is asked for them too.
+  const typeLine = md.match(/^\s*-\s*surface-type\s*:\s*(\S+)/im);
+  const operate = !!typeLine && typeLine[1].trim().toLowerCase() === 'operate';
+  const set = operate ? [...FIELD_SETS[setName], ...OPERATE_FIELDS] : FIELD_SETS[setName];
   const { fields, assumptions } = parse(md, set);
 
   const answered = [];
   const gaps = [];
   for (const [key] of set) {
-    if (!isBlank(fields[key])) answered.push(key);
+    const v = fields[key];
+    const real = !isBlank(v)
+      && !(operate && UNASSUMABLE.has(key) && bareNone(v))
+      && !(operate && ATTRIBUTED.has(key) && (!attributed(v) || unapproved(v)));
+    if (real) answered.push(key);
     else gaps.push(key);
   }
 
-  // Stubs for gaps that have no assumption line yet, and drop stale ones.
+  // Stubs for gaps that have no assumption line yet, and drop stale ones. A
+  // field that cannot be assumed gets no stub: an assumption line for it is
+  // dropped and it stays outstanding until the owner answers.
   const pending = [];
   const recorded = [];
+  const mustAsk = [];
   for (const key of gaps) {
+    if (UNASSUMABLE.has(key) && operate) { mustAsk.push(key); continue; }
     const reason = assumptions[key];
     if (reason === undefined || isBlank(reason)) pending.push(key);
     else recorded.push({ key, reason });
   }
   const stale = Object.keys(assumptions).filter((k) => answered.includes(k));
+  const refused = Object.keys(assumptions).filter((k) => mustAsk.includes(k));
 
   // Rewrite the Assumptions block so the file always matches reality.
   const lines = md.split('\n');
@@ -211,13 +255,15 @@ if (cmd === 'check') {
     answered,
     recorded,
     pending,
+    mustAsk,
+    refused,
     stale,
-    clean: pending.length === 0,
+    clean: pending.length === 0 && mustAsk.length === 0,
   };
 
   if (json) {
     console.log(JSON.stringify(result, null, 2));
-    process.exit(pending.length ? 1 : 0);
+    process.exit(result.clean ? 0 : 1);
   }
 
   console.log('');
@@ -231,6 +277,18 @@ if (cmd === 'check') {
   if (stale.length) {
     console.log('');
     console.log(`  cleared (now answered): ${stale.join(', ')}`);
+  }
+  if (mustAsk.length) {
+    console.log('');
+    console.log(`  MUST BE ASKED, CANNOT BE ASSUMED (${mustAsk.length}):`);
+    for (const key of mustAsk) {
+      const help = set.find(([k]) => k === key)[1];
+      console.log(`    · ${key}: ${help}`);
+    }
+    if (refused.length) console.log(`    (assumption removed for: ${refused.join(', ')})`);
+    console.log('');
+    console.log('  Ask the owner. On a product screen, an invented interaction model is the');
+    console.log('  failure this field exists to stop, so no reason can stand in for the answer.');
   }
   if (pending.length) {
     console.log('');
@@ -246,6 +304,7 @@ if (cmd === 'check') {
     console.log('');
     process.exit(1);
   }
+  if (mustAsk.length) { console.log(''); process.exit(1); }
 
   console.log('');
   console.log(recorded.length

@@ -136,7 +136,27 @@ for f in the-claim never-say string-inventory bar; do
   if grep -q "^- $f:" "$JB"; then ok "joint brief requires $f"; else bad "joint brief requires $f"; fi
 done
 node scripts/brief.mjs check "$JB" >/dev/null 2>&1
-check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "14"
+# 15 = 14 joint gaps + behaviour-model; convention-source gets no stub (below)
+check "joint brief gaps become assumptions" "$(grep -c 'ASSUMED:' "$JB")" "15"
+
+# On a product screen, the tool the person already uses cannot be assumed. An
+# invented interaction model is the failure it exists to stop, so a reason
+# cannot stand in for the answer, and a bare "none" says nobody looked.
+bc() { node scripts/brief.mjs check "$JB" --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.mustAsk.join(",")||"none",j.clean)})'; }
+sed -i.bak -E 's/<reason required>/stated by the test/' "$JB"
+check "an operate brief must ask convention-source" "$(bc)" "convention-source false"
+printf -- '- ASSUMED: convention-source :: it seemed obvious\n' >> "$JB"
+check "an assumption does not satisfy it"           "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: none/' "$JB"
+check "a bare none does not satisfy it"             "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: FL Studio playlist: P selects, C slices, right-click slices/' "$JB"
+check "an answer nobody is credited with does not"  "$(bc)" "convention-source false"
+sed -i.bak -E 's/^- convention-source: .*/- convention-source: FL Studio playlist: P selects, C slices (Michael, 9 Nov 2026)/' "$JB"
+check "an answer credited to the owner does"        "$(bc)" "none true"
+# The behaviour model records an approval, so a proposal is not one.
+sed -i.bak -E 's/^- behaviour-model: .*/- behaviour-model: PROPOSED, NOT YET APPROVED: delete with undo (Michael, 9 Nov 2026)/' "$JB"
+check "a proposed behaviour model is not an approved one" "$(node scripts/brief.mjs check "$JB" --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.answered.includes("behaviour-model"))})')" "false"
+check "persuade briefs do not carry it"             "$(grep -c '^- convention-source:' "$B/.mikedesign/brief-home.md")" "0"
 rm -rf "$B"
 
 echo
@@ -396,13 +416,33 @@ if [ -f "${MIKECOPY_HOME:-../mikecopy}/data/rules.json" ]; then
     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>f.id==="em-dash-in-copy").map(f=>f.where.split(":").pop()).join(","))})')
   check "code comments are not copy, shipped strings are" "$CM" "4"
 fi
+# Polish rules must not fire where the form is correct: code set in a monospace
+# face keeps its straight quotes and 25MB, and figures side by side in a row do
+# not need tabular numerals. The same figures stacked in a column do.
+node -e '
+const st=(o)=>Object.assign({fontFamily:"Fraunces",fontSize:"16px",fontVariantNumeric:"normal"},o);
+const el=(i,o)=>Object.assign({i,tag:"DIV",cls:"",id:"",text:"",role:"body",parentSig:"p",sig:"s",x:0,y:0,w:100,h:20,styles:st({})},o);
+const row=[0,1,2].map(i=>el(i,{text:["1,111","8,808","4,404"][i],x:i*120,y:0,sig:"row"}));
+const col=[0,1,2].map(i=>el(10+i,{text:["1,111","8,808","4,404"][i],x:0,y:40+i*24,sig:"col",parentSig:"q"}));
+// a table: two numeric columns whose cells share one signature, and a 1-2-3 stepper
+const table=[0,1,2].flatMap(r=>[0,1].map(c=>el(30+r*2+c,{text:["12.50","1,204"][c],x:300+c*140,y:r*24,sig:"td",parentSig:"tr"})));
+const steps=[0,1,2].map(i=>el(40+i,{text:String(i+1),x:600,y:i*30,sig:"step",parentSig:"ol"}));
+const code=el(20,{tag:"CODE",text:"curl -F \"file=@take.wav\" --max 25MB",styles:st({fontFamily:"ui-monospace, Menlo, monospace"})});
+const page={ok:true,collector:"mikedesign/1",url:"fixture://polish",viewport:{w:1280,h:800},pageBackground:"rgb(250, 248, 244)",pageColor:"rgb(20, 20, 20)",coverage:{scanned:7,kept:7,truncated:false},elements:[...row,...col,...table,...steps,code]};
+require("fs").writeFileSync(process.argv[1],JSON.stringify(page));' "$U/polish.json"
+POL=$(node scripts/lint.mjs --rendered "$U/polish.json" --surface operate --json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.findings.filter(f=>["straight-quotes","unit-without-space","numbers-not-tabular"].includes(f.id)).map(f=>f.id+":"+f.where).join(",")||"none")})')
+# 3 = the stacked column plus each of the table's two columns; the row and the stepper do not count
+check "polish rules spare code, rows and steppers, catch columns and tables" "$(printf '%s' "$POL" | grep -o 'numbers-not-tabular' | wc -l | tr -d ' '),$(printf '%s' "$POL" | grep -c 'quotes\|unit')" "3,0"
 rm -rf "$U"
 
 echo
 echo "11. Product UI measurement in a real browser"
 if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   PORT=8931
-  node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)})}).listen(+process.argv[1])' $PORT &
+  # Serves fixtures/ui; any request carrying slow=1 is answered after 1.5 s, which
+  # stands in for a slow server in the behaviour fixtures.
+  node -e 'const h=require("http"),f=require("fs"),p=require("path");h.createServer((q,r)=>{const file=p.join("fixtures/ui",p.basename(q.url.split("?")[0]));const go=()=>f.readFile(file,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{"content-type":"text/html"});r.end(b)});/[?&]slow=1/.test(q.url)?setTimeout(go,1500):go()}).listen(+process.argv[1])' $PORT &
   SRV=$!; sleep 0.5
   MERR=$(mktemp)
   mj() { node scripts/measure.mjs "http://127.0.0.1:$PORT/$1" --profile desktop --json 2>>"$MERR"; }
@@ -433,6 +473,41 @@ if [ -x "$CHROME" ] || [ -n "${CHROME_PATH:-}" ]; then
   fi
   node scripts/measure.mjs "http://127.0.0.1:1/nothing" --profile desktop --json >/dev/null 2>&1
   check "unreachable page is no verdict"      "$?" "2"
+
+  echo
+  echo "11a. Behaviour checks in a real browser"
+  bj() { node scripts/behave.mjs "http://127.0.0.1:$PORT/$1" --action "$2" --profile desktop --json 2>>"$MERR"; }
+  BG=$(bj behave-good.html '.del[data-name="Intro"]'); BGX=$?
+  check "a well-behaved action meets every check"   "$BGX" "0"
+  check "undo found through the visible control"    "$(jget "$BG" "j.runs[0].checks.undo.value")" "visible Undo control"
+  BS=$(bj 'behave-good.html?slow' '.del[data-name="Intro"]')
+  check "a slow action with a pending row shows it is working" "$(jget "$BS" "j.runs[0].checks.waiting.status")" "met"
+  BB=$(bj behave-bad.html '.del'); BBX=$?
+  check "every behaviour failure is caught" "$(jget "$BB" "['acknowledged','announced','waiting','undo','failure'].map(k=>j.runs[0].checks[k].status).join(',')")" "miss,miss,miss,miss,miss"
+  check "a behaviour miss exits 1"                  "$BBX" "1"
+  # An element that ticks on its own (a playhead, a clock) is learned before the
+  # press and ignored, so it neither fakes an acknowledgement nor stops settling.
+  BC=$(bj 'behave-bad.html?clock' '.del')
+  check "a ticking element does not fake acknowledgement" "$(jget "$BC" "j.runs[0].checks.acknowledged.status")" "miss"
+  bj 'behave-good.html?clock' '.del[data-name="Intro"]' >/dev/null
+  check "a ticking element does not break a good action" "$?" "0"
+  # A desktop editor: no network, select first, and a disk that can fill up.
+  # Pressing a disabled action proves nothing, so it is refused.
+  BD=$(bj behave-local.html '#delete'); BDX=$?
+  check "a disabled action is refused, not passed" "$BDX,$(jget "$BD" "/disabled/.test(j.runs[0].error)")" "2,true"
+  BL=$(node scripts/behave.mjs "http://127.0.0.1:$PORT/behave-local.html" --prepare '.clip[data-id="a"]' --action '#delete' --fail-switch '#sim-disk' --profile desktop --json 2>>"$MERR"); BLX=$?
+  check "select-then-delete with a disk failure meets every check" "$BLX,$(jget "$BL" "j.runs[0].checks.failure.status")" "0,met"
+  bj behave-good.html '#no-such-action' >/dev/null
+  check "a missing action is no verdict"            "$?" "2"
+  # Safety: it really performs the action, so it refuses anything that is not local.
+  node scripts/behave.mjs "https://example.com/" --action a --json >/dev/null 2>&1
+  check "a remote address is refused"               "$?" "2"
+  node scripts/behave.mjs "file://fileserver/share/page.html" --action a --json >/dev/null 2>&1
+  check "a file address on another machine is refused" "$?" "2"
+  BR=$(bj behave-redirect.html '.del'); BRX=$?
+  check "a page that redirects away is not pressed" "$BRX,$(jget "$BR" "/not a local address/.test(j.runs[0].error)")" "2,true"
+  BLEFT=$(ls -d "${TMPDIR:-/tmp}"/mikedesign-behave-* 2>/dev/null | wc -l | tr -d ' ')
+  check "no temporary behaviour profile left behind" "$BLEFT" "0"
   kill $SRV 2>/dev/null
 else
   printf '  \033[33mSKIP\033[0m  measurement tests (no Chrome found; set CHROME_PATH)\n'

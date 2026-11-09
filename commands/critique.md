@@ -15,6 +15,11 @@ On an `operate` surface, also run `measure.mjs` per [../core/ui.md](../core/ui.m
 targets table in the backlog: a missed target is a P0 when it blocks a task (a control that cannot
 be reached by keyboard, text that fails contrast) and a P1 otherwise.
 
+On an `operate` surface, also run `behave.mjs` on the main action and do the walkthrough in
+[../core/behaviour.md](../core/behaviour.md). Behaviour findings go in the backlog beside the
+visual ones: an action with no failure state, or a lost edit, is a P0; a confirmation where undo
+was possible, a bare spinner, or a convention broken without a reason is a P1.
+
 Get real coverage. A critique built on source scanning alone has not checked colour, typeface,
 shadow or layout, and must say so rather than implying a clean bill.
 
@@ -31,6 +36,11 @@ mobile, then actually read the screenshots against
 - Follow the sequence. Does the surface answer the visitor's questions in the order they arise?
 - Find the weakest section, name why it is weakest, and say what it should carry instead.
 - Check the states nobody demos: empty, error, loading, longest plausible content.
+- On a product screen, judge behaviour against the core fifteen in
+  [../core/behaviour.md](../core/behaviour.md): name the principle each finding breaks, and where
+  two principles pull against each other, say which one should win here and why.
+- Name the convention the screen follows, or should. Which tool's model does the person bring,
+  and where does the screen depart from it without paying for the relearning?
 - Check the copy against the product's own language, not category language. Run mikecopy's
   linter over the page's source strings too, when it is installed.
 - Run the deletion test over every string: what would the person lose if it were gone? List the
@@ -66,7 +76,9 @@ Sections, in this order:
 Every finding needs a locator, what is wrong, why it matters, and the fix. A finding a reader
 cannot act on is a complaint.
 
-Give a score out of 10 with one sentence of justification, and state the coverage the score rests
+On a product screen give two scores, one for how it looks and one for how it behaves, because a
+strong look routinely hides a weak model and a single number lets it. Give each a score out of 10
+with one sentence of justification, and state the coverage the score rests
 on. A 7 based on partial coverage is a 7 about half the surface, and saying so is the difference
 between a critique and a guess.
 

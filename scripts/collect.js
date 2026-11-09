@@ -33,6 +33,8 @@
     ['borderLeftWidth', 'border-left-width'],
     ['fill', 'fill'],
     ['transitionProperty', 'transition-property'],
+    ['transitionDuration', 'transition-duration'],
+    ['fontVariantNumeric', 'font-variant-numeric'],
     ['position', 'position'],
   ];
 

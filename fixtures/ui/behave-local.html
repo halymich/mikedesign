@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clips</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; }
+  .clip { display: inline-block; padding: 12px 16px; margin: 4px; border: 1px solid #888; cursor: pointer; }
+  .clip[aria-selected="true"] { outline: 3px solid #222; }
+  button { font: inherit; padding: 8px 12px; }
+  #status:empty, #problem:empty { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Clips</h1>
+  <div id="lane" role="listbox" aria-label="Lane">
+    <span class="clip" role="option" data-id="a" aria-selected="false">Clip A</span>
+    <span class="clip" role="option" data-id="b" aria-selected="false">Clip B</span>
+  </div>
+  <button id="delete" disabled>Delete</button>
+  <label><input type="checkbox" id="sim-disk"> Simulate a full disk</label>
+</main>
+<div id="status" role="status"></div>
+<div id="problem" role="alert"></div>
+<script>
+  // A desktop-style editor with no network: select first, then delete. Its real
+  // failure is a disk write, simulated by a visible switch, as behaviour.md asks.
+  const lane = document.getElementById('lane');
+  const del = document.getElementById('delete');
+  const status = document.getElementById('status');
+  const problem = document.getElementById('problem');
+  let selected = null, removed = null;
+  lane.addEventListener('click', (e) => {
+    const c = e.target.closest('.clip'); if (!c) return;
+    lane.querySelectorAll('.clip').forEach((x) => x.setAttribute('aria-selected', String(x === c)));
+    selected = c; del.disabled = false;
+  });
+  del.addEventListener('click', () => {
+    if (!selected) return;
+    const c = selected;
+    if (document.getElementById('sim-disk').checked) {
+      problem.textContent = "Couldn't save the cut. The disk is full; free some space and try again.";
+      return;
+    }
+    removed = { c, next: c.nextElementSibling };
+    c.remove(); selected = null; del.disabled = true;
+    status.textContent = 'Deleted ' + c.textContent + '. ';
+    const undo = document.createElement('button');
+    undo.textContent = 'Undo';
+    undo.addEventListener('click', () => { lane.insertBefore(removed.c, removed.next); status.textContent = 'Restored.'; });
+    status.append(undo);
+  });
+</script>
+</body>
+</html>

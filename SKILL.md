@@ -1,7 +1,7 @@
 ---
 name: mikedesign
-description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, and transactional and lifecycle email, on web, native iOS or Android, and email clients. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Product UI is held to measured targets for tap response, layout stability, page weight and WCAG 2.2 AA. Also use when a design feels generic, templated or AI-generated. Screens with words are designed in one joint interview with mikecopy, run by grilling, and judged against the best current work from well-resourced teams. Not for backend work.
-version: 2.1.0
+description: Use for any design decision on any interface. Covers websites, landing pages, marketing sites, product UI, app screens, dashboards, components, forms, onboarding and empty states, and transactional and lifecycle email, on web, native iOS or Android, and email clients. Handles building a design system from nothing, creating a new surface, refining or critiquing existing work, producing software mockups, interface illustrations and data-flow diagrams, and generating App Store and Play Store listing screenshots and app preview videos. Product UI is designed behaviour first (an unstyled working prototype approved before styling) and held to measured targets for tap response, undo, layout stability, page weight and WCAG 2.2 AA. Also use when a design feels generic, templated or AI-generated. Screens with words are designed in one joint interview with mikecopy, run by grilling, and judged against the best current work from well-resourced teams. Not for backend work.
+version: 2.2.0
 user-invocable: true
 argument-hint: "[system|new|refine|critique|illustrate|screenshots] [target]"
 license: MIT
@@ -25,7 +25,7 @@ The exception is a purely mechanical change where the user already specified the
 "make that button 8px wider" or "change this hex to #0c1425". That is a routine edit, not a
 design decision. Make it and move on.
 
-## The four principles
+## The five principles
 
 **1. Ruthless inquiry.** Never guess a design decision. Interview until the answer exists or is
 recorded as an assumption. `scripts/brief.mjs` enforces this mechanically: it writes an
@@ -68,7 +68,14 @@ breadcrumb of working links, a step counter, a byline, a date or chapter number.
 [core/craft-floor.md](core/craft-floor.md) for building and in mikecopy's voice guide for
 writing, and the linter measures it as geometry, so case and class name do not get you past it.
 
-**4. The bar is the best work shipped today, not the owner's own.** Work is judged against
+**4. Behaviour before looks, on a product screen.** How it works is decided and approved before
+how it looks, because a good look on the wrong interaction model hides the model until it has
+been built twice. Ask which tool the person already uses for the job, every time: `brief.mjs`
+will not let `convention-source` be assumed on an `operate` surface. Keep or break that tool's
+conventions on purpose, and show an unstyled working prototype first. The rules are the fifteen
+paired principles in [core/behaviour.md](core/behaviour.md).
+
+**5. The bar is the best work shipped today, not the owner's own.** Work is judged against
 current, world-class interfaces from large, well-resourced design teams, never against the
 owner's earlier work or against what the model remembers. The references are found live for
 each job and combined with the owner's private taste profile, and the skill takes their
@@ -111,7 +118,9 @@ Load [core/showing.md](core/showing.md) in every command that produces something
 look at, which is all of them except when a run is purely diagnostic. For interview mechanics,
 load [core/inquiry.md](core/inquiry.md).
 
-**Product UI loads itself.** Every `operate` surface on web or native loads [core/ui.md](core/ui.md) on top of the
+**Product UI loads itself.** Every `operate` surface on web or native loads
+[core/behaviour.md](core/behaviour.md) before any visual work, and holds the behaviour gate in it
+when the direction is new. It then loads [core/ui.md](core/ui.md) on top of the
 craft floor: measured targets for tap response, layout stability, weight and accessibility, the
 type scale, and when glass and texture are the right tool. No command to remember. A paywall or
 onboarding screen inside an app loads it too, because a person is interacting with it. Email does
@@ -244,6 +253,10 @@ Never report a design as done on the strength of having written it. Evidence, in
    It measures tap response, layout shift, weight and WCAG 2.2 AA on a slowed phone profile and
    on desktop. A miss is reported with its number for the user to decide; it does not block on
    its own. See [core/ui.md](core/ui.md).
+   Then press the main action: `node $S/behave.mjs <url> --action "<main action selector>"`.
+   It checks acknowledgement, announcement, the working cue, undo and the offline failure, on a
+   local or test address only. Do the walkthrough in [core/behaviour.md](core/behaviour.md)
+   beside it; the script cannot judge whether the states are clear or the model is right.
 6. **Compare to the bar.** Put the result next to each reference at the same viewport and list
    the gaps, per [core/bar.md](core/bar.md). A design that clears the linter and falls short of the
    bar has not finished.
@@ -277,7 +290,8 @@ warrants, and what to do when there is nobody to ask.
 
 ## Reporting
 
-End every run with, in this order: the assumptions on record, what changed in plain terms, the
-references used with the principle taken from each and the gaps that remain against them, what
-the verification actually showed (with the coverage numbers, and for product UI the table of
+End every run with, in this order: the assumptions on record, what changed in plain terms, on a
+product screen the behaviour model and the convention it follows (with each departure and its
+reason), the references used with the principle taken from each and the gaps that remain against
+them, what the verification actually showed (with the coverage numbers, and for product UI the table of
 targets met and missed), and what needs the user's decision. If nothing needs them, say so explicitly.

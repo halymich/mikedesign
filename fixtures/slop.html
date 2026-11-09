@@ -82,6 +82,8 @@
   .card .ico { font-size: 32px; }              /* emoji-as-icon */
   .card:hover { width: 140px; }                /* layout-animating-transition */
   .card { transition: width .3s ease, box-shadow .3s ease; }
+  .chip { transition: all .2s ease; display: inline-block; padding: 4px 8px; border-radius: 4px; background: #eef; } /* transition-all */
+  .stats div { font-family: Inter, sans-serif; text-align: right; width: 120px; } /* numbers-not-tabular */
   .card h3 { margin: 12px 0 8px; font-size: 18px; }
   .card p { margin: 0; color: #9ca3af; font-size: 14px; }
 
@@ -146,6 +148,16 @@
     <p>Great question! I hope this helps you decide which plan is right for you.</p>
     <p>Pricing is reviewed quarterly.contentReference[oaicite:0]</p>
     <p>In conclusion, the future looks bright for anyone who travels.</p>
+  </div>
+
+  <!-- Polish fixtures: a unit with no space, a transition on everything, and a
+       column of figures that does not line up because the digits are proportional. -->
+  <p>Uploads up to 25MB, processed in 300ms.</p>
+  <span class="chip">Beta</span>
+  <div class="stats">
+    <div>1,111.11</div>
+    <div>8,808.88</div>
+    <div>4,404.41</div>
   </div>
 
 </div>

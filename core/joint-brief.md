@@ -27,7 +27,9 @@ run a design interview and then a copy interview.
   `modes/product.md` (who is talking, what the reader already knows, the claim in one sentence,
   what must never be said). Ask each question once, in whichever round it belongs. If an answer
   already exists in `.mikedesign/DESIGN.md`, a prior brief or the owner's taste profile, use it
-  and do not ask.
+  and do not ask, with one exception: on a product screen, `convention-source` is asked in this
+  interview every time, even when an earlier brief names a model. An earlier answer is exactly
+  how an un-asked model survives (see [inquiry.md](inquiry.md)).
 - If the `grilling` skill is not installed, run the same rounds yourself with your tool's
   structured question feature, and say so in the report.
 - The record is `brief.mjs`, as before: `node $S/brief.mjs init <root> <surface> --type <type>
@@ -58,13 +60,18 @@ the visitor and the job are settled.
 1. **Find the bar.** Load [bar.md](bar.md), pick the references, write down the principles taken
    from each. This happens before any structure, because the bar changes what is worth
    attempting.
-2. **Structure and strings together.** Draw the sequence and the string inventory as one
-   artifact. This is the first gate in [showing.md](showing.md): the owner sees what appears, in
+2. **Behaviour, on a product screen.** For an `operate` surface whose direction is new, build the
+   grey prototype in [behaviour.md](behaviour.md) and hold the behaviour gate before any styling.
+   Record the approved model in the brief's `behaviour-model` field. The string inventory's
+   state and error strings appear in it in outline, because a failure state without its words
+   cannot be judged.
+3. **Structure and strings together.** Draw the sequence and the string inventory as one
+   artifact. This is the direction gate in [showing.md](showing.md): the owner sees what appears, in
    what order, and what each piece of text says in outline.
-3. **Words.** Hand the surviving inventory to mikecopy to write, in the voice at `brand.voice`.
+4. **Words.** Hand the surviving inventory to mikecopy to write, in the voice at `brand.voice`.
    mikecopy returns the words with a count before and after, and any string it deleted with the
    reason.
-4. **Build, verify, compare to the bar, show.** One surface, words in place, desktop and phone.
+5. **Build, verify, compare to the bar, show.** One surface, words in place, desktop and phone.
 
 The words are written after the structure is agreed and before it is built. They are never
 retrofitted into finished markup, and the structure is never finalized without having seen them.

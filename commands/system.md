@@ -95,6 +95,13 @@ same argument and quietly builds it anyway.
 
 ## 5. Three concepts, rendered
 
+**For a product target, behaviour first.** When any target in this system is an `operate`
+surface, hold the behaviour gate in [../core/behaviour.md](../core/behaviour.md) before building
+concepts: a grey prototype of the core actions, built on the `convention-source` the owner gave.
+The three concepts then share that approved model and differ only in how it looks. Three concepts
+that each invent their own interaction model ask the owner to judge two things at once, and the
+look wins the vote while the model goes unexamined.
+
 Load [../core/bar.md](../core/bar.md) first and build the concepts from the principles taken from
 the references, never from remembered looks or from the owner's earlier work. Each concept still
 differs from the references and from the other two; what they share with the bar is discipline.
