@@ -71,6 +71,13 @@ critique files are regenerable and belong in `.gitignore`.
 
 ## The principles
 
+Every principle in the skill is a pair: it names its opposite and says where each one wins, so
+the skill tells you when to break its own advice. A short list of hard rules has no opposite and
+is marked "Always wins": WCAG 2.2 AA, the measured budgets and hard rules in `data/rules.json`,
+the behaviour gate, asking (never assuming) which tool the person already uses, and never faking
+an asset or an approval. Many pairs link to the matching page in
+[Interface Lineage](https://interfacelineage.com/principles), cited by link only.
+
 **Ruthless inquiry.** `scripts/brief.mjs` writes an `ASSUMED:` stub for every unanswered field
 and exits non-zero until each has a reason. It is not possible to reach a clean brief while
 holding an unrecorded guess. You can still tell it to just go, and it will, but the guesses

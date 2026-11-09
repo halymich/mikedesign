@@ -13,11 +13,19 @@ The failure this prevents: a product screen that looks finished in a screenshot 
 jumpy or unusable in the hand. Product UI is judged in use. Everything below is either measured by
 `scripts/measure.mjs` or checked by hand on the built result, and the report says which.
 
+Each principle below is a pair: it names its opposite and says where each one wins, read the way
+"How to read the principles" in [../SKILL.md](../SKILL.md) describes. The targets and WCAG 2.2 AA
+have no opposite and are marked **Always wins**.
+
 ## The targets
 
 Measured on a mid-range phone profile (4x slower CPU, slow 4G), not on the machine it was built
 on. Misses are reported to the owner with the number; they decide whether a miss blocks shipping.
 Never round a miss into a pass, and never leave a target out of the report because it missed.
+
+**Always wins.** No design choice trades a target away. A glass layer, a texture, a font or an
+animation that costs a target is the thing that changes, unless the owner moves the target in
+`DESIGN.md` with a reason.
 
 | Target | Web | Native (iOS, Android) |
 |---|---|---|
@@ -51,6 +59,13 @@ before it is an engineering one.
 - **Skeletons match the real layout** exactly, so the swap to content moves nothing. A generic grey
   bar that is shorter than the real row is a layout shift waiting to happen.
 
+**Opposite:** progress tells the truth, and the receipt never claims the result. **Where each
+wins:** showing the result at once wins for an action that can be rolled back where it happened,
+with the reason said, if the server disagrees. Honest progress wins for anything paid, sent to
+other people or irreversible. Either way, the press itself is acknowledged instantly.
+[Optimism needs a rollback](https://interfacelineage.com/optimism-is-a-debt) ·
+[The sub-second law](https://interfacelineage.com/sub-second-wins)
+
 ### Layout stability at 0.05
 
 - **Reserve every space before it fills.** Images and video carry `width` and `height` or an
@@ -60,6 +75,10 @@ before it is an engineering one.
 - **Never insert content above what the user is reading.** Banners, cookie notices and "new items"
   bars overlay or push from the bottom.
 - **Animate with `transform` and `opacity` only.** The linter flags the rest.
+
+**Opposite:** new content has to be noticed. **Where each wins:** stability wins over the
+position the eye is resting on, always. News of new content arrives as an overlay or a control the
+person presses to load it, never by pushing their place down the page.
 
 ### Lean architecture
 
@@ -72,6 +91,13 @@ before it is an engineering one.
 - **Images in AVIF or WebP**, sized to the slot they fill, lazy below the first screen.
 - **Name the cost of anything added.** If a dependency is genuinely needed, say its compressed size
   in the report next to what it replaces.
+
+**Opposite:** do not rebuild what already exists. **Where each wins:** what the project already
+uses wins first, even over the platform, because a second way of doing the same thing is its own
+cost. For anything new, the platform beats a library. A library wins only for work the platform
+genuinely does not do and nobody should hand-write (a date library, a rich-text engine), with its
+cost named.
+[Do less](https://interfacelineage.com/do-less)
 
 ### Accessibility, WCAG 2.2 AA
 
@@ -88,6 +114,10 @@ axe-core catches roughly the mechanical third. The rest is checked by hand, ever
 - **Motion** honours `prefers-reduced-motion`; transparency honours `prefers-reduced-transparency`.
 - **Zoom and reflow**: usable at 200% text and at 320 px without horizontal scrolling (1.4.10).
 
+**Always wins.** No look, density or convention outweighs WCAG 2.2 AA. Where an approved design
+cannot meet it, the design changes, or the gap is recorded as a deviation the owner decided (see
+"Record deviations" in [craft-floor.md](craft-floor.md)).
+
 ### Responsive and mobile-first
 
 - **Build the phone layout first** and add columns as space allows, never the reverse.
@@ -97,6 +127,13 @@ axe-core catches roughly the mechanical third. The rest is checked by hand, ever
   the primary one.
 - **The right keyboard.** `type`, `inputmode` and `autocomplete` on every field.
 - **Safe areas** on phones with notches and home indicators (`env(safe-area-inset-*)`).
+
+**Opposite:** the incumbent's layout carries over. **Where each wins:** when `convention-source` is
+a desktop tool, its desktop layout carries over and the desktop screen is designed as carefully as
+the phone. The phone layout is still built, still works at 320 px, and is not a shrunken desktop.
+On native, the platform's own placement of actions (a navigation bar's trailing button, a toolbar)
+beats moving them into the thumb zone by hand.
+[Familiar Layout Carryover](https://interfacelineage.com/familiar-layout-carryover)
 
 ## The visual language
 
@@ -121,6 +158,10 @@ Rounding to the nearest whole pixel is fine and within the linter's tolerance. I
 in-between size because 20 felt slightly too big is not: pick a step, or change the scale for the
 whole product.
 
+**Opposite:** display type that commands the page. **Where each wins:** a tight ratio wins on
+screens with many levels of hierarchy close together. A larger ratio wins on display type that has
+one job, on a `persuade` target of its own. One product never mixes the two inside one target.
+
 ### Expressive, dynamic typography
 
 - **Weight and optical size do the hierarchy work**, not only size. A variable font's `wght` and
@@ -130,6 +171,10 @@ whole product.
   text stay fixed so the interface does not reflow as the window resizes.
 - **Motion in type is one moment**, such as a price counting down to its new value, not a
   treatment on every heading. Reduced motion shows the final value.
+
+**Opposite:** text that holds still. **Where each wins:** expression lives in display type and
+in one moment a value changes. Body and control text stay fixed, plain and on the scale, because
+they are read and pressed, not admired.
 
 ### Tactile textures
 
@@ -141,6 +186,13 @@ Texture makes a flat screen feel like a material: a surface you could press.
   controls read as physical and the pressed state reads as depressed.
 - **Haptics on native** for confirmations and toggles, from the system's own feedback generators.
 - **Check contrast on the textured surface**, not on the flat colour underneath it.
+
+**Opposite:** ornament is guilty until useful. **Where each wins:** texture stays where it tells
+the person something true: this can be pressed, this is raised above that, this was confirmed.
+Texture that only decorates comes off, the way a training wheel does once the metaphor is learned.
+**Always wins:** contrast measured on the textured surface.
+[Skeuomorphism is a training wheel](https://interfacelineage.com/skeuomorphism-is-a-training-wheel) ·
+[Ornament is guilty until useful](https://interfacelineage.com/ornament-is-guilty-until-useful)
 
 ### Glassmorphism 2.0
 
@@ -162,6 +214,11 @@ When glass is right:
   one of the most expensive things a phone draws, and it is what breaks the 200 ms target first.
 - **Contrast is measured over the busiest content** that can scroll behind it, not over a calm
   area of the design file.
+
+**Opposite:** a solid surface. **Where each wins:** glass wins only for a layer over content
+that moves beneath it. Everywhere else a solid surface is cheaper, clearer and wins.
+**Always wins:** contrast over the busiest content, and the solid fallback under reduced
+transparency.
 
 Record in `DESIGN.md` which surfaces use glass and texture and why. If a product uses glass
 somewhere the linter flags, the record plus an `allow` entry is how it passes.

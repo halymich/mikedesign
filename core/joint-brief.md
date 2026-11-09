@@ -6,6 +6,9 @@ decision. The headline sets the hierarchy, the longest label sets the column wid
 state is half message and half picture. Deciding them in sequence is how words get cut to fit a
 box nobody checked them against.
 
+Each principle in this file is a pair, read the way "How to read the principles" in
+[../SKILL.md](../SKILL.md) describes.
+
 ## When it applies
 
 Any request whose result has both a layout and words a person reads: a feature screen, a
@@ -13,6 +16,10 @@ landing page, a settings page, an onboarding flow, a transactional email, a stor
 is nearly everything this skill touches. A purely mechanical edit the owner specified is
 exempt, and so is a request that is only words (mikecopy alone) or only a visual (an icon, a
 colour change).
+
+**Opposite:** one decision at a time. **Where each wins:** layout and words are one decision
+wherever a person reads the surface. A change that touches only one of them is decided on its own,
+without dragging the other into the interview.
 
 ## One interview, run by grilling
 
@@ -36,6 +43,10 @@ run a design interview and then a copy interview.
   --fields joint`. It holds the design fields and the writing fields in one file. Unanswered
   fields become recorded assumptions. Do not hand-maintain that list.
 
+**Opposite:** interview until aligned. **Where each wins:** the interview runs until the owner
+says they are aligned, and asks each question once. An earlier answer wins over asking again,
+except for `convention-source` on a product screen, which is asked fresh (**Always wins**).
+
 ## Questions only a joint brief asks
 
 These are the ones that stop the two halves drifting. Ask them in the round after the facts about
@@ -54,6 +65,12 @@ the visitor and the job are settled.
 - **Where it will be read.** Phone in a queue, desktop at work, an inbox preview, a lock screen.
   This sets the length and the order, and for email it names the clients that matter. See
   [../platform/email.md](../platform/email.md).
+
+**The deletion test against plain words.** Deletion wins wherever the design already shows the
+meaning. Words win where they say what no design could: the claim, the reassurance, the exact
+next step, the error and its fix. A label is never cut so far that it stops naming its action.
+[Picture before label](https://interfacelineage.com/picture-before-label) ·
+[Name commands plainly](https://interfacelineage.com/name-commands-plainly)
 
 ## Order of work after the interview
 
@@ -75,6 +92,10 @@ the visitor and the job are settled.
 
 The words are written after the structure is agreed and before it is built. They are never
 retrofitted into finished markup, and the structure is never finalized without having seen them.
+
+**Opposite:** behaviour before looks. **Where each wins:** on a new product screen, the behaviour
+gate comes before structure and words, and its strings appear only in outline. On every other
+surface, structure and words lead together.
 
 ## Fallbacks
 

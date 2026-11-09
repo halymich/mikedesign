@@ -45,7 +45,7 @@ learn a term to answer a question.
 
 Every `operate` brief records `convention-source`: the tool the person already uses for this job
 and whose model they have in their hands, or "none" with what was checked. `brief.mjs` will not
-accept an assumption for it on a product screen; it has to be asked.
+accept an assumption for it on a product screen; it has to be asked (**Always wins**).
 
 When there is an incumbent, the interview asks which parts of its model carry over: layout,
 selection, keys, what a click and a drag mean, where things live. Then every departure is written
@@ -63,8 +63,10 @@ day shouts at an expert.
 When two principles meet on a surface, find the line in "Where each wins", decide, and write the
 decision in the brief with the reason. That record is what stops the next surface re-arguing it.
 
-Hard rules elsewhere in this skill (the eyebrow ban, the slop rules marked `hard`) have no opposite.
-They always win.
+Hard rules have no opposite and are marked **Always wins**: WCAG 2.2 AA, the measured budgets
+and the `hard` rules in `data/rules.json` (the eyebrow ban among them), the behaviour gate below,
+and `convention-source` asked rather than assumed. The full list is in "How to read the principles"
+in [../SKILL.md](../SKILL.md).
 
 ## The core fifteen
 
@@ -265,6 +267,8 @@ Motion that claims continuity the operation does not have is never allowed.
 
 For an `operate` surface whose direction is new, the first thing the owner sees is a working,
 unstyled prototype of how it behaves. Not the look. Styling waits until this is approved.
+**Always wins** on a new `operate` direction; the cases where it does not apply are under "When it
+is skipped".
 
 **What it is.** The core actions working for real, with the real content or real sample data:
 
