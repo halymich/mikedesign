@@ -35,10 +35,15 @@ target without a recorded reason is the same failure as silencing a lint rule.
 The user must see that their tap landed before anything slow happens. That is a design decision
 before it is an engineering one.
 
-- **Acknowledge first, work second.** The pressed state, the spinner, the optimistic row, all
+- **Acknowledge first, work second.** The press itself is acknowledged within 100 ms, a tighter
+  bar than the 200 ms tap response above, and `behave.mjs` measures it (see
+  [behaviour.md](behaviour.md)). The pressed state, the pending row, the optimistic change, all
   paint in the same frame as the tap. The network call comes after.
-- **Optimistic UI for reversible actions.** Mark it done, then reconcile. For irreversible or paid
-  actions, show progress instead, because pretending a payment succeeded is worse than waiting.
+- **Optimistic UI for reversible actions.** Show the change at once, then reconcile, and if the
+  server disagrees, roll it back where it happened and say why (principle 2 in
+  [behaviour.md](behaviour.md): the receipt must never claim a result that can still fail). For
+  irreversible or paid actions, show progress instead, because pretending a payment succeeded is
+  worse than waiting.
 - **No work on the main thread in a tap handler** beyond updating state. Parsing, sorting large
   lists and image processing move off it or into idle time.
 - **Pressed states are tactile.** A slight scale (0.97) and a compressed shadow on press, using
