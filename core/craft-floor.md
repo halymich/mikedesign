@@ -20,8 +20,9 @@ inspection round rather than a screenshot per fix.
 **Contrast.** Body and placeholder text at 4.5:1 minimum, large text at 3:1. On a coloured
 surface, tint secondary text from that hue or from the foreground. Never reach for grey; grey on
 colour is the sound of a decision not being made.
-**Always wins:** the ratios are WCAG 2.2 AA. A brand colour that cannot make them is used for
-something other than text, not excused.
+**Always wins:** the ratios are WCAG 2.2 AA. A brand colour that cannot make them moves off
+text. If the owner still wants it there, that is a deviation they decided and is recorded as one
+(below), never a silent pass.
 
 **Depth.** A shadow implies a light source, so it has direction: offset plus soft blur. Consistent
 across the surface, because two light sources on one page reads as an accident.

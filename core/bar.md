@@ -112,8 +112,8 @@ design around honestly, never something to fake.
 **Opposite:** design with what exists. **Where each wins:** close every gap that craft can close.
 A gap that needs an asset the product does not have stays open and named, because a faked asset is
 a worse gap than an honest absence.
-**Always wins:** nothing is faked. No generated photography passed off as real, no invented
-quotes, numbers or logos.
+**Always wins:** nothing is faked. No generated photography standing in for real photography,
+no invented quotes, numbers or logos.
 
 Report the references used, the principle taken from each, and the gaps that remain. A design that
 clears every lint rule and falls short of the bar has not finished.

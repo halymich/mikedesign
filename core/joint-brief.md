@@ -43,9 +43,9 @@ run a design interview and then a copy interview.
   --fields joint`. It holds the design fields and the writing fields in one file. Unanswered
   fields become recorded assumptions. Do not hand-maintain that list.
 
-**Opposite:** interview until aligned. **Where each wins:** the interview runs until the owner
-says they are aligned, and asks each question once. An earlier answer wins over asking again,
-except for `convention-source` on a product screen, which is asked fresh (**Always wins**).
+**Opposite:** reuse what is already known. **Where each wins:** the interview runs until the
+owner says they are aligned, and asks each question once. An earlier answer wins over asking
+again, except for `convention-source` on a product screen, which is asked fresh (**Always wins**).
 
 ## Questions only a joint brief asks
 

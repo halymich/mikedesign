@@ -65,8 +65,8 @@ decision in the brief with the reason. That record is what stops the next surfac
 
 Hard rules have no opposite and are marked **Always wins**: WCAG 2.2 AA, the measured budgets
 and the `hard` rules in `data/rules.json` (the eyebrow ban among them), the behaviour gate below,
-and `convention-source` asked rather than assumed. The full list is in "How to read the principles"
-in [../SKILL.md](../SKILL.md).
+and `convention-source` asked rather than assumed. The list, and the one way an owner can set a
+rule aside, is in "How to read the principles" in [../SKILL.md](../SKILL.md).
 
 ## The core fifteen
 

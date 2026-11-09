@@ -100,6 +100,10 @@ with the fact that this was not reviewed, followed by the link. That way the gat
 message waiting for the user rather than a step that silently did not happen. This mirrors what
 `brief.mjs` already does with unanswered fields: the record shows what was decided without a human.
 
+One field cannot be filled this way. On a product screen with no `convention-source` answer on
+record, `brief.mjs` refuses an assumption, so stop before building and leave the question waiting
+for the owner, with the tools you found as the options.
+
 ## This is not the shipping gate
 
 Projects have an approval gate immediately before merge, covering whether the work ships. This is

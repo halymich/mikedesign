@@ -92,9 +92,10 @@ person presses to load it, never by pushing their place down the page.
 - **Name the cost of anything added.** If a dependency is genuinely needed, say its compressed size
   in the report next to what it replaces.
 
-**Opposite:** do not rebuild what already exists. **Where each wins:** what the project already
-uses wins first, even over the platform, because a second way of doing the same thing is its own
-cost. For anything new, the platform beats a library. A library wins only for work the platform
+**Opposite:** do not rebuild what already exists. **Where each wins:** a library the project
+already ships keeps doing its job, because a second way of doing the same thing is its own cost;
+replacing it with the platform is a separate decision for the owner. For anything the project does
+not have yet, the platform beats a new library. A new library wins only for work the platform
 genuinely does not do and nobody should hand-write (a date library, a rich-text engine), with its
 cost named.
 [Do less](https://interfacelineage.com/do-less)
