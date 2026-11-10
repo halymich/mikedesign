@@ -13,12 +13,19 @@ design. Never claim a rung of the ladder was impossible without having tried it.
 A report that says "the hero now uses the accent colour at 72px" has told the user nothing they
 can judge. A link they can open has told them everything.
 
+Each principle in this file is a pair, read the way "How to read the principles" in
+[../SKILL.md](../SKILL.md) describes.
+
 ## Show the words in place
 
 Structure and words are shown together, never one then the other. A mockup with lorem ipsum or
 a copy deck with no layout asks the owner to imagine the half you left out. The first gate shows
 the sequence with each string's job in outline; the last shows the real surface with its real
 words.
+
+**Opposite:** show it early, while it is cheap to change. **Where each wins:** early gates show
+structure and each string's job in outline, because finished words on an unagreed structure waste
+both. The last gate shows real words in place, never placeholder text.
 
 ## The ladder
 
@@ -43,6 +50,10 @@ is showing something the store will never display.
 
 **5. Screenshots in the reply.** Last resort. The report says which rungs you tried and why they
 did not work, so "here are some images" never quietly becomes the default.
+
+**Opposite:** the fastest thing to hand over. **Where each wins:** the highest rung that applies
+wins, even when a lower one is quicker. A lower rung wins only when the higher one would show
+something untrue, like a browser reflowing a store panel that must be exact.
 
 ## The gate
 
@@ -75,19 +86,27 @@ mechanical changes where the user named the value; this extends it.
 A skill that stops twice to trim a button label gets routed around, and a skill nobody uses
 enforces nothing. Proportionality is what keeps the gates worth respecting.
 
+**Opposite:** show, then stop. **Where each wins:** a gate wins wherever a design decision is still
+open. Momentum wins on edits inside a decision already made.
+**Always wins:** the behaviour gate on a new product direction.
+
 ## When there is nobody to ask
 
 Scheduled runs, headless runs, and any context without an interactive channel. Interactive questions
 cannot work there.
 
-Never fabricate the approval. Build to the brief, publish the artifact anyway, and lead the report
+**Always wins:** never fabricate the approval. Build to the brief, publish the artifact anyway, and lead the report
 with the fact that this was not reviewed, followed by the link. That way the gate becomes a
 message waiting for the user rather than a step that silently did not happen. This mirrors what
 `brief.mjs` already does with unanswered fields: the record shows what was decided without a human.
+
+One field cannot be filled this way. On a product screen with no `convention-source` answer on
+record, `brief.mjs` refuses an assumption, so stop before building and leave the question waiting
+for the owner, with the tools you found as the options.
 
 ## This is not the shipping gate
 
 Projects have an approval gate immediately before merge, covering whether the work ships. This is
 a different gate, earlier, covering whether the design is right. Passing this one does not
 authorize a merge, and a merge approval was never a design review. Do not collapse them into one
-question.
+question. **Always wins.**
